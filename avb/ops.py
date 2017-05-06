@@ -6,7 +6,7 @@ from tensorflow.python.framework import ops
 from tensorflow.contrib import slim
 from tensorflow.contrib import layers as tflayers
 
-from autoencoders.utils import *
+from avb.utils import *
 
 @slim.add_arg_scope
 def conv2d_transpose(

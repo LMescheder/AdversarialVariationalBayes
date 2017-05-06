@@ -7,7 +7,7 @@ encoder_dict = {
 }
 
 def get_encoder_ac(model_name, config, scope='encoder'):
-    model_func = decoder_dict[model_name]
+    model_func = encoder_dict[model_name]
     return tf.make_template(
-        scope, model_func, config
+        scope, model_func, config=config
     )

@@ -3,7 +3,7 @@ from tensorflow.contrib import slim as slim
 from avb.ops import *
 import math
 
-def decoder(z, config, num_out=1):
+def decoder(z, config, num_out=1, is_training=True):
     output_size = config['output_size']
     c_dim = config['c_dim']
     gf_dim = config['gf_dim']
@@ -28,7 +28,7 @@ def decoder(z, config, num_out=1):
     output = [
         conv2d_transpose(net, [s, s, c_dim], stride=filter_strides[0],
             activation_fn=None, kernel_size=(5, 5), scope="x_%i" % i)
-        for in range(num_out)
+        for i in range(num_out)
     ]
 
     return output

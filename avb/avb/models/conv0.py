@@ -1,15 +1,15 @@
 import tensorflow as tf
 from tensorflow.contrib import slim
-from autoencoders.ops import *
+from avb.ops import *
 
-def encoder(x, config, eps=None):
+def encoder(x, config, eps=None, is_training=True):
     output_size = config['output_size']
     c_dim = config['c_dim']
     df_dim = config['df_dim']
     z_dist = config['z_dist']
     z_dim = config['z_dim']
     eps_dim = config['eps_dim']
-    
+
     # Center x at 0
     x = 2*x - 1
 
@@ -51,7 +51,7 @@ def encoder(x, config, eps=None):
     return z
 
 
-def adversary(x, z, config)
+def adversary(x, z, config, is_training=True):
     z_dim = config['z_dim']
     output_size = config['output_size']
     df_dim = 64
@@ -107,4 +107,4 @@ def adversary(x, z, config)
 
     T = tf.squeeze(T, 1)
 
-return T
+    return T

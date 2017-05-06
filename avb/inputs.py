@@ -2,33 +2,19 @@ import numpy as np
 import tensorflow as tf
 import os
 
-def get_filename_queue(split_file, data_dir):
-    with open(split_file, 'r') as f:
-        filenames = f.readlines()
-    filenames = [os.path.join(data_dir, f.strip()) for f in filenames]
+def get_inputs_image(config):
+    output_size = config['output_size']
+    image_size = config['image_size']
+    c_dim = config['c_dim']
+    data_dir = config['data_dir']
+    dataset = config['dataset']
+    split = config['split']
 
-    for f in filenames:
-        if not os.path.exists(f):
-            raise ValueError('Failed to find file: ' + f)
-    filename_queue = tf.train.string_input_producer(filenames)
+    split_file = os.path.join(data_dir, 'splits', dataset, split + '.lst')
 
-    return filename_queue
+    # Get queue
+    filename_queue = get_filename_queue(split_file, os.path.join(data_dir, dataset))
 
-
-def create_batch(inputs, batch_size=64, min_queue_examples=10000, num_preprocess_threads=12):
-    # Generate a batch of images and labels by building up a queue of examples.
-    batch = tf.train.shuffle_batch(
-        inputs,
-        batch_size=batch_size,
-        num_threads=num_preprocess_threads,
-        capacity=min_queue_examples + 3 * batch_size,
-        min_after_dequeue=min_queue_examples
-    )
-
-    return batch
-
-
-def get_input_image(filename_queue, output_size, image_size, c_dim):
     # Read a record, getting filenames from the filename_queue.
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
@@ -44,10 +30,55 @@ def get_input_image(filename_queue, output_size, image_size, c_dim):
 
     image.set_shape([output_size, output_size, c_dim])
 
-    return image
+    # Get batch
+    batch_images = create_batch([image], config['batch_size'])
 
+    return batch_images
 
-def get_input_cifar10(filename_queue):
+def get_inputs_mnist(config):
+    data_dir = config['data_dir']
+    dataset = config['dataset']
+    split = config['split']
+
+    split_file = os.path.join(data_dir, 'splits', dataset, split + '.lst')
+
+    # Get queue
+    filename_queue = get_filename_queue(split_file, os.path.join(data_dir, dataset))
+
+    reader = tf.TFRecordReader()
+
+    _, serialized_example = reader.read(filename_queue)
+
+    features = tf.parse_single_example(
+      serialized_example,
+      features={'image_raw': tf.FixedLenFeature([], tf.string)}
+    )
+
+    # Convert from a scalar string tensor (whose single string has
+    # length mnist.IMAGE_PIXELS) to a uint8 tensor with shape
+    # [mnist.IMAGE_PIXELS].
+    image = tf.decode_raw(features['image_raw'], tf.uint8)
+    image = tf.cast(image, tf.float32)/255.
+    image = tf.reshape(image, [28, 28, 1])
+
+    # Get batch
+    batch_images = create_batch([image], config['batch_size'])
+
+    return batch_images
+
+def get_inputs_cifar10(config):
+    output_size = config['output_size']
+    image_size = config['image_size']
+    c_dim = config['c_dim']
+    data_dir = config['data_dir']
+    dataset = config['dataset']
+    split = config['split']
+
+    split_file = os.path.join(data_dir, 'splits', dataset, split + '.lst')
+
+    # Get queue
+    filename_queue = get_filename_queue(split_file, os.path.join(data_dir, dataset))
+
     # Dimensions of the images in the CIFAR-10 dataset.
     # See http://www.cs.toronto.edu/~kriz/cifar.html for a description of the
     # input format.
@@ -73,4 +104,32 @@ def get_input_cifar10(filename_queue):
     # Convert from [depth, height, width] to [height, width, depth].
     image = tf.transpose(image, [1, 2, 0])
 
-    return image, label
+    # Get batch
+    batch_images = create_batch([image], config['batch_size'])
+
+    return batch
+
+def get_filename_queue(split_file, data_dir):
+    with open(split_file, 'r') as f:
+        filenames = f.readlines()
+    filenames = [os.path.join(data_dir, f.strip()) for f in filenames]
+
+    for f in filenames:
+        if not os.path.exists(f):
+            raise ValueError('Failed to find file: ' + f)
+    filename_queue = tf.train.string_input_producer(filenames)
+
+    return filename_queue
+
+
+def create_batch(inputs, batch_size=64, min_queue_examples=10000, num_preprocess_threads=16, enqueue_many=False):
+    # Generate a batch of images and labels by building up a queue of examples.
+    batch = tf.train.shuffle_batch(
+        inputs,
+        batch_size=batch_size,
+        num_threads=num_preprocess_threads,
+        capacity=min_queue_examples + 3 * batch_size,
+        min_after_dequeue=min_queue_examples,
+        enqueue_many=enqueue_many,
+    )
+    return batch

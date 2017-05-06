@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib import slim
 from autoencoders.ops import *
 
-def encoder(x, config, eps=None):
+def encoder(x, config, eps=None, is_training=True):
     output_size = config['output_size']
     c_dim = config['c_dim']
     df_dim = config['df_dim']
