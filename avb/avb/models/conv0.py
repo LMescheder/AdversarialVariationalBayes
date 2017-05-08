@@ -53,6 +53,7 @@ def encoder(x, config, eps=None, is_training=True):
 
 def adversary(x, z, config, is_training=True):
     z_dim = config['z_dim']
+    z_dist = config['z_dist']
     output_size = config['output_size']
     df_dim = 64
 
@@ -106,5 +107,8 @@ def adversary(x, z, config, is_training=True):
     T = tf.reduce_sum(theta * s, [1], keep_dims=True) + Tx + Tz
 
     T = tf.squeeze(T, 1)
+
+    if z_dist == "gauss":
+        T += 0.5 * tf.reduce_sum(z*z, [1])
 
     return T

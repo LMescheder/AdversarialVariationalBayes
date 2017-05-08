@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib import slim
-from autoencoders.ops import *
+from avb.ops import *
 
 def encoder(x, config, eps=None, is_training=True):
     output_size = config['output_size']
@@ -17,10 +17,10 @@ def encoder(x, config, eps=None, is_training=True):
     # Noise
     if eps is None:
         batch_size = tf.shape(x)[0]
-        eps = tf.random_normal(tf.stack([batch_size, eps_dim]))
+        eps = tf.random_normal(tf.stack([eps_nbasis, batch_size, eps_dim]))
 
     # Coefficients
-    n_down = max(min(int(math.log(self.output_size, 2)) - 2, 4), 0)
+    n_down = max(min(int(math.log(output_size, 2)) - 2, 4), 0)
     filter_strides = [(1, 1)] * (4 - n_down) + [(2, 2)] * n_down
 
     bn_kwargs = {

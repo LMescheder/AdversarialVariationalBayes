@@ -33,7 +33,7 @@ parser.add_argument("--eps-nbasis", default=32, type=int, help="Number of noise 
 
 parser.add_argument("--dataset", default="celebA", type=str, help="The name of dataset.")
 parser.add_argument("--data-dir", default="data", type=str, help="Path to the data directory.")
-parser.add_argument('--split', default='train', type=str, help='Which split to use.')
+parser.add_argument('--split-dir', default='data/splits', type=str, help='Folder where splits are found')
 
 parser.add_argument("--log-dir", default="tf_logs", type=str, help="Directory name to save the checkpoints.")
 parser.add_argument("--sample-dir", default="samples", type=str, help="Directory name to save the image samples.")
@@ -63,26 +63,17 @@ def main():
     if not os.path.exists(args.sample_dir):
         os.makedirs(args.sample_dir)
 
-    # Data
-    if args.dataset == 'mnist':
-        image_batch = inputs.get_inputs_mnist(config)
-        config['output_size'] = 28
-        config['c_dim'] = 1
-    elif args.dataset == "cifar-10":
-        image_batch = inputs.get_inputs_cifar10(config)
-        config['output_size'] = 32
-        config['c_dim'] = 3
-    else:
-        image_batch = inputs.get_inputs_image(config)
-
     decoder = get_decoder(args.decoder, config)
     encoder = get_encoder(args.encoder, config)
     adversary = get_adversary(args.adversary, config)
 
     if args.is_train:
-        train(encoder, decoder, adversary, image_batch, config)
+        x_train = inputs.get_inputs('train', config)
+        x_val = inputs.get_inputs('val', config)
+
+        train(encoder, decoder, adversary, x_train, x_val, config)
     else:
-        pass
+        x_test = inputs.get_inputs('test', config)
 
 if __name__ == '__main__':
     main()

@@ -24,11 +24,10 @@ def decoder(z, config, num_out=1, is_training=True):
         net = conv2d_transpose(net, [s_down[1], s_down[1], 2*gf_dim], stride=filter_strides[2], scope="conv_1")
         net = conv2d_transpose(net, [s_down[0], s_down[0], 1*gf_dim], stride=filter_strides[1], scope="conv_2")
 
-
-    output = [
-        conv2d_transpose(net, [s, s, c_dim], stride=filter_strides[0],
-            activation_fn=None, kernel_size=(5, 5), scope="x_%i" % i)
-        for i in range(num_out)
-    ]
+        output = [
+            conv2d_transpose(net, [s, s, c_dim], stride=filter_strides[0],
+                activation_fn=None, kernel_size=(5, 5), scope="x_%i" % i)
+            for i in range(num_out)
+        ]
 
     return output
