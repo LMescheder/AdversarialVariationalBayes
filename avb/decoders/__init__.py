@@ -12,18 +12,20 @@ decoder_dict = {
 
 def get_decoder(model_name, config, scope='decoder'):
     cond_dist = config['cond_dist']
-    num_out = 1
     if cond_dist == 'gauss':
         num_out = 2
+    else:
+        num_out = 1
     model_func = decoder_dict[model_name]
     return tf.make_template(
         scope, model_func, config=config, num_out=num_out
     )
 
-def get_decoder_mean(decoder_out):
+def get_decoder_mean(decoder_out, config):
     return tf.sigmoid(decoder_out[0])
 
-def get_reconstr_err(decoder_out, x, cond_dist):
+def get_reconstr_err(decoder_out, x, config):
+    cond_dist = config['cond_dist']
     if cond_dist == 'gauss':
         loc = tf.sigmoid(decoder_out[0])
         logscale = decoder_out[1]
@@ -40,3 +42,16 @@ def get_reconstr_err(decoder_out, x, cond_dist):
         )
 
     return reconst_err
+
+
+def get_interpolations(decoder, z1, z2, N, config):
+    z_dim = config['z_dim']
+    alpha = tf.reshape(tf.linspace(0., 1., N), [1, N, 1])
+
+    z1 =  tf.reshape(z1, [-1, 1, z_dim])
+    z2 =  tf.reshape(z2, [-1, 1, z_dim])
+
+    z_interp = alpha * z1 + (1 - alpha) * z2
+    z_interp = tf.reshape(z_interp, [-1, z_dim])
+
+    return decoder(z_interp)

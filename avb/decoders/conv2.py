@@ -38,4 +38,5 @@ def decoder(z, config, num_out=1, is_training=True):
                 activation_fn=None, kernel_size=(5, 5), scope="x_%i" % i)
             for i in range(num_out)
         ]
+        
     return output

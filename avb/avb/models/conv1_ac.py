@@ -69,7 +69,7 @@ def encoder(x, config, eps=None, is_training=True):
         Ez += a*Ev
         Varz += a*a*Varv
 
-    if z_dist == "uniform":
-        z = tf.nn.sigmoid(z)
+    # if z_dist == "uniform":
+    #     z = tf.nn.sigmoid(z)
 
     return z, Ez, Varz

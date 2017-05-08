@@ -25,8 +25,7 @@ def decoder(z, config, num_out=1, is_training=True):
         net = conv2d_transpose(net, [s2, s2, 16], scope="conv_1")
 
         output = [
-            conv2d_transpose(net, [s, s, c_dim], stride=(2, 2),
-                activation_fn=None, kernel_size=(5, 5), scope="x_%i" % i)
+            conv2d_transpose(net, [s, s, c_dim], activation_fn=None, scope="x_%i" % i)
             for i in range(num_out)
         ]
 
