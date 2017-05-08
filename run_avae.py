@@ -6,6 +6,7 @@ import argparse
 from avb.utils import pp
 from avb import inputs
 from avb.avb.train import train
+from avb.avb.test import test
 from avb.decoders import get_decoder
 from avb.avb.models import get_encoder, get_adversary
 import tensorflow as tf
@@ -56,6 +57,7 @@ def main():
     config = vars(args)
     config['gf_dim'] = 64
     config['df_dim'] = 64
+    config['test_is_adaptive_eps'] = True
     pp.pprint(config)
 
     if not os.path.exists(args.log_dir):
@@ -74,6 +76,7 @@ def main():
         train(encoder, decoder, adversary, x_train, x_val, config)
     else:
         x_test = inputs.get_inputs('test', config)
+        test(encoder, decoder, adversary, x_test, config)
 
 if __name__ == '__main__':
     main()

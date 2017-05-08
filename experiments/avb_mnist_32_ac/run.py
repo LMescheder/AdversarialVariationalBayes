@@ -15,9 +15,9 @@ rootdir = srcdir
 # Arguments
 args = [
 # Architecture
-'--is-train',
+#'--is-train',
 '--image-size', '375',
-'--output-size', '32',
+'--output-size', '28',
 '--c-dim', '3',
 '--z-dim', '32',
 '--z-dist', 'gauss',
@@ -30,7 +30,7 @@ args = [
 '--is-01-range',
 '--is-ac',
 # Training
-'--nsteps', '200000',
+'--nsteps', '2000000',
 '--ntest', '100',
 "--learning-rate", "1e-4",
 "--learning-rate-adversary", "2e-4",
@@ -56,7 +56,7 @@ my_env = os.environ.copy()
 # my_env["CUDA_TOOLKIT_ROOT_DIR"] = "/usr/local/cuda-7.5"
 # my_env["CUDA_BIN_PATH"] = "/usr/local/cuda-7.5"
 my_env["LD_LIBRARY_PATH"] = "/is/software/nvidia/cuda-8.0/lib64/:/is/software/nvidia/cudnn-5.1/lib64/"
-# my_env["CUDA_VISIBLE_DEVICES"] = ""
+my_env["CUDA_VISIBLE_DEVICES"] = ""
 
 call([executable, scriptname] + args, env=my_env, cwd=rootdir)
 
