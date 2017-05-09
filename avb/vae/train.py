@@ -9,6 +9,7 @@ def train(encoder, decoder, x_train, x_val, config):
     z_dim = config['z_dim']
     z_dist = config['z_dist']
     anneal_steps = config['anneal_steps']
+    is_anneal = config['is_anneal']
 
     # TODO: support uniform
     if config['z_dist'] != 'gauss':
@@ -21,7 +22,10 @@ def train(encoder, decoder, x_train, x_val, config):
     global_step_op = global_step.assign_add(1)
 
     # Build graphs
-    beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
+    if is_anneal:
+        beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
+    else:
+        beta = 1
     vae_train = VAE(encoder, decoder, x_train, z_sampled, config, beta=beta)
     vae_val = VAE(encoder, decoder, x_val, z_sampled, config, is_training=False)
 
@@ -40,7 +44,6 @@ def train(encoder, decoder, x_train, x_val, config):
     train_op = get_train_op(
         vae_train.loss, encoder_vars + decoder_vars, config
     )
-
 
 
     # Summaries

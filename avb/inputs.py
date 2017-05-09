@@ -30,9 +30,6 @@ def get_inputs_image(filename_queue, config):
     image_size = config['image_size']
     c_dim = config['c_dim']
 
-    # Get queue
-    filename_queue = get_filename_queue(split_file, os.path.join(data_dir, dataset))
-
     # Read a record, getting filenames from the filename_queue.
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)

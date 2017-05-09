@@ -3,13 +3,14 @@ from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
 
 class AVB(object):
-    def __init__(self, encoder, decoder, adversary, x_real, z_sampled, config, is_training=True):
+    def __init__(self, encoder, decoder, adversary, x_real, z_sampled, config, beta=1, is_training=True):
         self.encoder = encoder
         self.decoder = decoder
         self.adversary = adversary
         self.config = config
         self.x_real = x_real
         self.z_sampled = z_sampled
+        self.beta = beta
 
         is_ac = config['is_ac']
         cond_dist = config['cond_dist']
@@ -41,7 +42,7 @@ class AVB(object):
         self.reconst_err = get_reconstr_err(self.decoder_out, self.x_real, config=config)
         self.KL = Td + logr - logz
         self.ELBO = -self.reconst_err - self.KL
-        self.loss_primal = -factor * tf.reduce_mean(self.ELBO)
+        self.loss_primal = factor * tf.reduce_mean(self.reconst_err + self.beta*self.KL)
 
         # Mean values
         self.ELBO_mean = tf.reduce_mean(self.ELBO)

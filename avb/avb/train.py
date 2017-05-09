@@ -8,6 +8,8 @@ def train(encoder, decoder, adversary, x_train, x_val, config):
     batch_size = config['batch_size']
     z_dim = config['z_dim']
     z_dist = config['z_dist']
+    anneal_steps = config['anneal_steps']
+    is_anneal = config['is_anneal']
 
     # TODO: support uniform
     if config['z_dist'] != 'gauss':
@@ -15,7 +17,16 @@ def train(encoder, decoder, adversary, x_train, x_val, config):
 
     z_sampled = tf.random_normal([batch_size, z_dim])
 
+
+    # Global step
+    global_step = tf.Variable(0, trainable=False)
+    global_step_op = global_step.assign_add(1)
+
     # Build graphs
+    if is_anneal:
+        beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
+    else:
+        beta = 1
     avb_train = AVB(encoder, decoder, adversary, x_train, z_sampled, config)
     avb_val = AVB(encoder, decoder, adversary, x_val, z_sampled, config, is_training=False)
 
@@ -36,10 +47,6 @@ def train(encoder, decoder, adversary, x_train, x_val, config):
         avb_train.loss_primal, avb_train.loss_dual,
         encoder_vars + decoder_vars, adversary_vars, config
     )
-
-    # Global step
-    global_step = tf.Variable(0, trainable=False)
-    global_step_op = global_step.assign_add(1)
 
     # Summaries
     summary_op = tf.summary.merge([

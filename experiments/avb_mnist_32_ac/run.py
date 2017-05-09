@@ -15,7 +15,7 @@ rootdir = srcdir
 # Arguments
 args = [
 # Architecture
-#'--is-train',
+'--is-train',
 '--image-size', '375',
 '--output-size', '28',
 '--c-dim', '3',
