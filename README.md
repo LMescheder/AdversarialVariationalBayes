@@ -32,13 +32,15 @@ Example scripts to run the scripts can be found in the `experiments` folder.
 Using this architecture, we achieve an approximate ELBO of -82.3+-0.3 and an AIS score of -81.8+-0.4 for a 32-dimensional latent space with adaptive contrast.
 
 Samples:
+
 ![MNIST samples](img/mnist_samples.png)
 
 ## CelebA
 To run the experiments on celebA, first download the dataset from [here](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) and put in the `datasets/celebA` folder.
 
 Samples:
-![celebA samples](img/celebA_samples2.png)
+
+![celebA samples](img/celebA_samples.png)
 
 Interpolations:
 
