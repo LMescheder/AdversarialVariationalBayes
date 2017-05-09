@@ -7,7 +7,7 @@ executable = '/is/ps2/lmescheder/Apps/anaconda2/envs/tensorflow3/bin/python'
 
 # Paths
 srcdir = '../..'
-scriptname = 'run_avae.py'
+scriptname = 'run_vae.py'
 cwd = os.path.dirname(os.path.abspath(__file__))
 outdir = cwd
 rootdir = srcdir
@@ -22,18 +22,13 @@ args = [
 '--z-dim', '32',
 '--z-dist', 'gauss',
 '--cond-dist', 'bernouille',
-'--eps-dim', '64',
-'--eps-nbasis', '32',
-'--encoder', 'conv1_ac',
+'--encoder', 'conv1',
 '--decoder', 'conv1',
-'--adversary', 'conv0',
 '--is-01-range',
-'--is-ac',
 # Training
 '--nsteps', '2500000',
 '--ntest', '100',
 "--learning-rate", "1e-4",
-"--learning-rate-adversary", "2e-4",
 '--batch-size', '64',
 '--log-dir', os.path.join(outdir, 'logs'),
 '--sample-dir', os.path.join(outdir, 'samples'),
