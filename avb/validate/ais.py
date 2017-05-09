@@ -94,7 +94,7 @@ class AIS(object):
 
     def get_energy1(self, z):
         decoder_out = self.decoder(z)
-        E = -get_reconstr_err(decoder_out, self.x, self.config)
+        E = get_reconstr_err(decoder_out, self.x, self.config)
         # Prior
         E += tf.reduce_sum(
             0.5 * tf.square(z) + 0.5 * np.log(2*np.pi), [1]

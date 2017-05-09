@@ -43,7 +43,6 @@ def get_reconstr_err(decoder_out, x, config):
 
     return reconst_err
 
-
 def get_interpolations(decoder, z1, z2, N, config):
     z_dim = config['z_dim']
     alpha = tf.reshape(tf.linspace(0., 1., N), [1, N, 1])

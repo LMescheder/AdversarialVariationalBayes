@@ -25,7 +25,7 @@ def encoder(x, config, eps=None, is_training=True):
 
     conv2d_argscope = slim.arg_scope([slim.conv2d],
             activation_fn=tf.nn.elu, kernel_size=(5, 5), stride=2,
-            normalizer_fn=slim.batch_norm, normalizer_params=bn_kwargs)
+            normalizer_fn=None, normalizer_params=bn_kwargs)
 
     with conv2d_argscope:
         net = slim.conv2d(x, df_dim, scope="conv_0")

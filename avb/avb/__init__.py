@@ -27,7 +27,7 @@ class AVB(object):
         else:
             self.z_real, z_mean, z_var = encoder(x_real, is_training=is_training)
             self.z_mean, self.z_var = tf.stop_gradient(z_mean), tf.stop_gradient(z_var)
-            self.z_std = tf.sqrt(z_var + 1e-4)
+            self.z_std = tf.sqrt(self.z_var + 1e-4)
 
         self.z_norm = (self.z_real - self.z_mean)/self.z_std
         Td = adversary(self.z_norm, x_real, is_training=is_training)
@@ -40,8 +40,8 @@ class AVB(object):
         # Primal loss
         self.reconst_err = get_reconstr_err(self.decoder_out, self.x_real, config=config)
         self.KL = Td + logr - logz
-        self.ELBO = self.reconst_err + self.KL
-        self.loss_primal = factor * tf.reduce_mean(self.ELBO)
+        self.ELBO = -self.reconst_err - self.KL
+        self.loss_primal = -factor * tf.reduce_mean(self.ELBO)
 
         # Mean values
         self.ELBO_mean = tf.reduce_mean(self.ELBO)
