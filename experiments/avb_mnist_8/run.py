@@ -3,7 +3,7 @@ from subprocess import call
 from os import path
 
 # Executables
-executable = '/is/ps2/lmescheder/Apps/anaconda2/envs/tensorflow3/bin/python'
+executable = 'python'
 
 # Paths
 srcdir = '../..'
@@ -50,16 +50,7 @@ args = [
 '--test-is-center-posterior',
 ]
 
-
 # Run
 my_env = os.environ.copy()
-# my_env["CUDA_TOOLKIT_ROOT_DIR"] = "/usr/local/cuda-7.5"
-# my_env["CUDA_BIN_PATH"] = "/usr/local/cuda-7.5"
-my_env["LD_LIBRARY_PATH"] = "/is/software/nvidia/cuda-8.0/lib64/:/is/software/nvidia/cudnn-5.1/lib64/"
-my_env["CUDA_VISIBLE_DEVICES"] = ""
-
 call([executable, scriptname] + args, env=my_env, cwd=rootdir)
 
-
-# process = Popen(" ".join([executable, scriptname] + args), env=my_env, shell=True, cwd=rootdir)
-# process.communicate()

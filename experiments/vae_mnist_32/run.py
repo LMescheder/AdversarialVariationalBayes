@@ -24,6 +24,7 @@ args = [
 '--cond-dist', 'bernouille',
 '--encoder', 'conv1',
 '--decoder', 'conv1',
+'--anneal-steps', '10000',
 '--is-01-range',
 # Training
 '--nsteps', '2500000',
