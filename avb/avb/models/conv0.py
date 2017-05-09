@@ -30,7 +30,7 @@ def encoder(x, config, eps=None, is_training=True):
     )
     addlinear_argscope = slim.arg_scope([add_linear],
         activation_fn=tf.nn.elu,
-        normalizer_fn=slim.batch_norm, normalizer_params=bn_kwargs
+        normalizer_fn=None, normalizer_params=bn_kwargs
     )
     with conv2d_argscope, addlinear_argscope:
         net = slim.conv2d(x, 1*df_dim, stride=filter_strides[0], scope="conv_0")

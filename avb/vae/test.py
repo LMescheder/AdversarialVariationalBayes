@@ -7,7 +7,7 @@ from avb.vae import VAE
 from tqdm import tqdm
 import time
 
-def test(encoder, decoder, adversary, x_test, config):
+def test(encoder, decoder, x_test, config):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
     results_dir = os.path.join(eval_dir, "results")

@@ -28,6 +28,7 @@ parser.add_argument("--c-dim", default=3, type=int, help="Dimension of image col
 parser.add_argument("--z-dim", default=100, type=int, help="Dimension of latent space.")
 parser.add_argument("--z-dist", default="gauss", type=str, help="Prior distribution of latent space.")
 parser.add_argument("--cond-dist", default="gauss", type=str, help="Conditional distribution.")
+parser.add_argument("--anneal-steps", default="0", type=int, help="How many steps to use for annealing.")
 
 parser.add_argument("--dataset", default="celebA", type=str, help="The name of dataset.")
 parser.add_argument("--data-dir", default="data", type=str, help="Path to the data directory.")
@@ -54,6 +55,7 @@ def main():
     config['gf_dim'] = 64
     config['df_dim'] = 64
     config['test_is_adaptive_eps'] = True
+
     pp.pprint(config)
 
     if not os.path.exists(args.log_dir):

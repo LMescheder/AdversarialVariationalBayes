@@ -8,6 +8,7 @@ def train(encoder, decoder, x_train, x_val, config):
     batch_size = config['batch_size']
     z_dim = config['z_dim']
     z_dist = config['z_dist']
+    anneal_steps = config['anneal_steps']
 
     # TODO: support uniform
     if config['z_dist'] != 'gauss':
@@ -15,8 +16,13 @@ def train(encoder, decoder, x_train, x_val, config):
 
     z_sampled = tf.random_normal([batch_size, z_dim])
 
+    # Global step
+    global_step = tf.Variable(0, trainable=False)
+    global_step_op = global_step.assign_add(1)
+
     # Build graphs
-    vae_train = VAE(encoder, decoder, x_train, z_sampled, config)
+    beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
+    vae_train = VAE(encoder, decoder, x_train, z_sampled, config, beta=beta)
     vae_val = VAE(encoder, decoder, x_val, z_sampled, config, is_training=False)
 
     x_fake = get_decoder_mean(decoder(z_sampled, is_training=False), config)
@@ -35,9 +41,7 @@ def train(encoder, decoder, x_train, x_val, config):
         vae_train.loss, encoder_vars + decoder_vars, config
     )
 
-    # Global step
-    global_step = tf.Variable(0, trainable=False)
-    global_step_op = global_step.assign_add(1)
+
 
     # Summaries
     summary_op = tf.summary.merge([

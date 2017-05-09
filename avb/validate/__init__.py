@@ -2,7 +2,6 @@ import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
 from avb.validate.ais import AIS
-from avb.avb import AVB
 from tqdm import tqdm
 import pickle
 import time
@@ -15,7 +14,6 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, z_mean, z_std, config):
     batch_size = config['batch_size']
     ais_nchains = config['test_ais_nchains']
     test_nais = config['test_nais']
-    is_ac = config['is_ac']
 
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
