@@ -44,18 +44,14 @@ args = [
 # Test
 '--eval-dir', os.path.join(outdir, 'eval'),
 '--test-nite', '0',
-'--test-nais', '2000',
-'--test-ais-nchains', '10',
+'--test-nais', '20',
+'--test-ais-nsteps', '2000', 
+'--test-ais-nchains', '8',
 '--test-ais-eps', '1e-2',
 '--test-is-center-posterior',
 ]
 
-# Run
+# Set environment variables here
 my_env = os.environ.copy()
-# my_env["CUDA_TOOLKIT_ROOT_DIR"] = "/usr/local/cuda-7.5"
-# my_env["CUDA_BIN_PATH"] = "/usr/local/cuda-7.5"
-my_env["LD_LIBRARY_PATH"] = "/is/software/nvidia/cuda-8.0/lib64/:/is/software/nvidia/cudnn-5.1/lib64/"
-my_env["CUDA_VISIBLE_DEVICES"] = ""
-
+# Run
 call([executable, scriptname] + args, env=my_env, cwd=rootdir)
-
