@@ -27,7 +27,7 @@ def train(encoder, decoder, adversary, x_train, x_val, config):
         beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
     else:
         beta = 1
-    avb_train = AVB(encoder, decoder, adversary, x_train, z_sampled, config)
+    avb_train = AVB(encoder, decoder, adversary, x_train, z_sampled, config, beta=beta)
     avb_val = AVB(encoder, decoder, adversary, x_val, z_sampled, config, is_training=False)
 
     x_fake = get_decoder_mean(decoder(z_sampled, is_training=False), config)

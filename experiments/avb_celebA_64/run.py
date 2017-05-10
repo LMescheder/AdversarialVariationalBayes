@@ -32,8 +32,8 @@ args = [
 # Training
 '--nsteps', '2500000',
 '--ntest', '100',
-"--learning-rate", "1e-4",
-"--learning-rate-adversary", "2e-4",
+"--learning-rate", "1e-5",
+"--learning-rate-adversary", "1e-4",
 '--batch-size', '64',
 '--log-dir', os.path.join(outdir, 'logs'),
 '--sample-dir', os.path.join(outdir, 'samples'),
