@@ -1,5 +1,5 @@
 # Adversarial Variational Bayes
-This repository contains the code to reproduce the cire results from the paper [Adversarial Variational Bayes: Unifying Variational Autoencoders and Generative Adversarial Networks](https://arxiv.org/abs/1701.04722).
+This repository contains the code to reproduce the core results from the paper [Adversarial Variational Bayes: Unifying Variational Autoencoders and Generative Adversarial Networks](https://arxiv.org/abs/1701.04722).
 
 
 # Dependencies
