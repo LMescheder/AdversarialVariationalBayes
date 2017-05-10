@@ -36,7 +36,7 @@ Samples:
 ![MNIST samples](img/mnist_samples.png)
 
 ## CelebA
-To run the experiments on celebA, first download the dataset from [here](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) and put in the `datasets/celebA` folder.
+To run the experiments on celebA, first download the dataset from [here](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) and put all the images in the `datasets/celebA` folder.
 
 Samples:
 
