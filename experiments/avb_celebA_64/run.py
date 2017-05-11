@@ -26,7 +26,7 @@ args = [
 '--eps-nbasis', '32',
 '--encoder', 'conv0',
 '--decoder', 'conv0',
-'--adversary', 'conv0',
+'--adversary', 'conv1',
 '--is-01-range',
 #'--is-ac',
 # Training
