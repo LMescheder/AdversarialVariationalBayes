@@ -3,7 +3,7 @@ This repository contains the code to reproduce the core results from the paper [
 
 
 # Dependencies
-Before running the code, you have to install
+This project uses Python 3.5.2. Before running the code, you have to install
 * [Tensorflow 1.0](https://www.tensorflow.org/)
 * [Numpy](http://www.numpy.org/)
 * [Scipy](https://www.scipy.org/)
