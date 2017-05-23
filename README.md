@@ -1,9 +1,18 @@
 # Adversarial Variational Bayes
 This repository contains the code to reproduce the core results from the paper [Adversarial Variational Bayes: Unifying Variational Autoencoders and Generative Adversarial Networks](https://arxiv.org/abs/1701.04722).
 
+To cite this work, please use
+```
+@INPROCEEDINGS{Mescheder2017ICML,
+  author = {Lars Mescheder and Sebastian Nowozin and Andreas Geiger},
+  title = {Adversarial Variational Bayes: Unifying Variational Autoencoders and Generative Adversarial Networks},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year = {2017}
+}
+```
 
 # Dependencies
-Before running the code, you have to install
+This project uses Python 3.5.2. Before running the code, you have to install
 * [Tensorflow 1.0](https://www.tensorflow.org/)
 * [Numpy](http://www.numpy.org/)
 * [Scipy](https://www.scipy.org/)
