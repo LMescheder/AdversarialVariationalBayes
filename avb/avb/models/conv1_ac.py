@@ -28,9 +28,9 @@ def encoder(x, config, eps=None, is_training=True):
             normalizer_fn=None, normalizer_params=bn_kwargs)
 
     with conv2d_argscope:
-        net = slim.conv2d(x, df_dim, scope="conv_0")
-        net = slim.conv2d(net, 2*df_dim, scope="conv_1")
-        net = slim.conv2d(net, 4*df_dim, scope="conv_2")
+        net = slim.conv2d(x, 16, scope="conv_0")
+        net = slim.conv2d(net, 32, scope="conv_1")
+        net = slim.conv2d(net, 32, scope="conv_2")
 
     net = flatten_spatial(net)
     net = slim.fully_connected(net, 800, activation_fn=tf.nn.elu, scope='fc_0')
