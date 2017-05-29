@@ -32,8 +32,8 @@ def train(encoder, decoder, x_train, x_val, config):
     x_fake = get_decoder_mean(decoder(z_sampled, is_training=False), config)
 
     # Interpolations
-    z1 = tf.random_normal([8, z_dim])
-    z2 = tf.random_normal([8, z_dim])
+    z1 = vae_val.z_real[:8]
+    z2 = vae_val.z_real[8:16]
     x_interp = get_decoder_mean(get_interpolations(decoder, z1, z2, 8, config), config)
 
     # Variables
@@ -68,13 +68,10 @@ def train(encoder, decoder, x_train, x_val, config):
     # Session
     with sv.managed_session() as sess:
         # Show real data
-        samples = sess.run(x_val)
-        save_images(samples[:64], [8, 8], config['sample_dir'], 'real.png')
-        save_images(samples[:8], [8, 1], config['sample_dir'], 'real2.png')
-        save_images(samples[8:16], [8, 1], config['sample_dir'], 'real1.png')
-
-        # For interpolations
-        z_out = sess.run(vae_val.z_real, feed_dict={x_val: samples})
+        samples0 = sess.run(x_val)
+        save_images(samples0[:64], [8, 8], config['sample_dir'], 'real.png')
+        save_images(samples0[:8], [8, 1], config['sample_dir'], 'real2.png')
+        save_images(samples0[8:16], [8, 1], config['sample_dir'], 'real1.png')
 
         progress = tqdm(range(config['nsteps']))
         for batch_idx in progress:
@@ -99,7 +96,7 @@ def train(encoder, decoder, x_train, x_val, config):
                             'train_{:06d}.png'.format(niter)
                 )
 
-                interplations = sess.run(x_interp, feed_dict={z1: z_out[:8], z2: z_out[8:16]})
+                interplations = sess.run(x_interp, feed_dict={x_val: samples0})
                 save_images(interplations[:64], [8, 8], os.path.join(config['sample_dir'], 'interp'),
                             'interp_{:06d}.png'.format(niter)
                 )
