@@ -25,22 +25,24 @@ class IAFVAE(object):
         self.z_std = tf.exp(self.log_z_std)
         z = self.z_mean + z_sampled * self.z_std
 
-        self.KL = get_KL(self.z_mean, self.log_z_std, z_dist)
+        self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
 
         # IAF layers
         for iaf_layer in iaf_layers:
             m, s = iaf_layer(z, self.a, activation_fn=tf.nn.elu)
             sigma = tf.sigmoid(s)
             z = sigma * z + (1 - sigma) * m
-            self.KL -= tf.reduce_sum(tf.log(sigma + 1e-8), [1])
+            self.logq += tf.reduce_sum(tf.nn.softplus(-s), [1])
             z = tf.reverse(z, axis=[1])
         self.z_real = z
+        self.logp0 = get_pdf_gauss(0., 0., self.z_real)
         self.decoder_out = decoder(self.z_real, is_training=is_training)
 
         # Primal loss
         self.reconst_err = get_reconstr_err(self.decoder_out, self.x_real, config=config)
+        self.KL = -self.logp0 + self.logq
         self.ELBO = -self.reconst_err - self.KL
-        self.loss = factor * tf.reduce_mean(self.reconst_err + beta*self.KL)
+        self.loss = factor * tf.reduce_mean(self.reconst_err + self.beta*self.KL)
 
         # Mean values
         self.ELBO_mean = tf.reduce_mean(self.ELBO)
@@ -55,3 +57,8 @@ def get_KL(z_mean, log_z_std, z_dist):
         raise NotImplementedError
 
     return KL
+
+def get_pdf_gauss(loc, log_scale, sample):
+    scale = tf.exp(log_scale)
+    pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
+    return pdf

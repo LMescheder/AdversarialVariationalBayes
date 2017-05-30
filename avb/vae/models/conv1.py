@@ -23,7 +23,7 @@ def encoder(x, config, is_training=True):
         net = slim.conv2d(net, 32, scope="conv_2", normalizer_fn=None)
 
     net = flatten_spatial(net)
-    net = slim.fully_connected(net, 300, activation_fn=tf.nn.softplus, scope='fc_0')
+    net = slim.fully_connected(net, 800, activation_fn=tf.nn.softplus, scope='fc_0')
 
 
     zmean = slim.fully_connected(net, z_dim, activation_fn=None)
