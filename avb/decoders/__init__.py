@@ -24,6 +24,24 @@ def get_decoder(model_name, config, scope='decoder'):
 def get_decoder_mean(decoder_out, config):
     return tf.sigmoid(decoder_out[0])
 
+def get_decoder_samples(decoder_out, config):
+    cond_dist = config['cond_dist']
+    batch_size = config['batch_size']
+    output_size = config['output_size']
+    c_dim = config['c_dim']
+
+    if cond_dist == 'gauss':
+        eps = tf.random_normal([batch_size, output_size, output_size, c_dim])
+        loc = tf.sigmoid(decoder_out[0])
+        logscale = decoder_out[1]
+        samples = loc + tf.exp(logscale) * xeps
+    elif cond_dist == 'bernouille':
+        p = tf.sigmoid(decoder_out[0])
+        eps = tf.random_uniform([batch_size, output_size, output_size, c_dim])
+        samples = tf.cast(eps <= p, tf.float32)
+
+    return samples
+
 def get_reconstr_err(decoder_out, x, config):
     cond_dist = config['cond_dist']
     if cond_dist == 'gauss':

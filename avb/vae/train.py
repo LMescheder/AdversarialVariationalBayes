@@ -23,7 +23,7 @@ def train(encoder, decoder, x_train, x_val, config):
 
     # Build graphs
     if is_anneal:
-        beta = tf.train.polynomial_decay(0., global_step, anneal_steps, 1.0, power=1)
+        beta = tf.minimum(tf.cast(global_step, tf.float32) / anneal_steps, 1.)
     else:
         beta = 1
     vae_train = VAE(encoder, decoder, x_train, z_sampled, config, beta=beta)

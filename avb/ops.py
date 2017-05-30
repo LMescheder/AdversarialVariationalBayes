@@ -100,6 +100,29 @@ def add_resnet_conv(
 
     return net
 
+@slim.add_arg_scope
+def masked_linear_layer(
+        inputs,
+        out_dim,
+        mask,
+        activation_fn=None,
+        weights_initializer=tflayers.xavier_initializer(),
+        scope=None,
+        reuse=None):
+    with tf.variable_scope(scope, 'MADE', [inputs], reuse=reuse) as sc:
+        in_dim = int(inputs.get_shape()[1])
+        M = tf.constant(mask)
+        W = tf.get_variable('weights', [in_dim, out_dim],
+                            initializer=weights_initializer)
+        biases = tf.get_variable('biases', [out_dim], initializer=tf.constant_initializer(0.0))
+
+        out = tf.matmul(inputs, M*W) + biases
+
+        if not activation_fn is None:
+            out = activation_fn(out)
+
+    return out
+
 def custom_initializer(seed=None, dtype=tf.float32, trp=False):
     def _initializer(shape, dtype=dtype, partition_info=None):
         if len(shape) == 2:
