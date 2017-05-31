@@ -6,11 +6,13 @@ from tqdm import tqdm
 import pickle
 import time
 
-def run_tests(decoder, stats_scalar, stats_dist, x_test, z_mean, z_std, config):
+def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_posterior, energy0, config,
+        latent_dim=None, eps_scale=None):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
     results_dir = os.path.join(eval_dir, "results")
-    z_dim = config['z_dim']
+    if latent_dim is None:
+        latent_dim = config['z_dim']
     batch_size = config['batch_size']
     ais_nchains = config['test_ais_nchains']
     test_nais = config['test_nais']
@@ -19,7 +21,8 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, z_mean, z_std, config):
         os.makedirs(results_dir)
 
     saver = tf.train.Saver()
-    ais = AIS(decoder=decoder, config=config)
+    ais = AIS(x_test, latent_samples, params_posterior,
+        decoder=decoder, energy0=energy0, config=config, latent_dim=latent_dim, eps_scale=eps_scale)
 
     # Session
     sess = tf.Session()
@@ -28,6 +31,8 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, z_mean, z_std, config):
 
     # Load model
     sess.run(tf.global_variables_initializer())
+    return
+
     if load_session(sess, saver, config):
         print(" [*] Load SUCCESS")
     else:
@@ -44,7 +49,7 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, z_mean, z_std, config):
     start_time = time.time()
     nbreak = 200
 
-    ais_samples = np.zeros([ais_nchains, batch_size, z_dim])
+    ais_samples = np.zeros([ais_nchains, batch_size, latent_dim])
 
     progress_batch = tqdm(range(nbreak), desc="Test")
     for i in progress_batch:

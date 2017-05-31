@@ -29,13 +29,8 @@ class IAFVAE(object):
         self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
 
         # IAF layers
-        for iaf_layer in iaf_layers:
-            m, s = iaf_layer(z, self.a, activation_fn=tf.nn.elu)
-            sigma = tf.sigmoid(s)
-            z = sigma * z + (1 - sigma) * m
-            self.logq += tf.reduce_sum(tf.nn.softplus(-s), [1])
-            z = tf.reverse(z, axis=[1])
-        self.z_real = z
+        self.z_real, self.logq = apply_iaf(self.iaf_layers, self.a, z, self.logq)
+
         self.logp0 = get_pdf_gauss(0., 0., self.z_real)
         self.decoder_out = decoder(self.z_real, is_training=is_training)
 
@@ -49,6 +44,20 @@ class IAFVAE(object):
         self.ELBO_mean = tf.reduce_mean(self.ELBO)
         self.KL_mean = tf.reduce_mean(self.KL)
         self.reconst_err_mean = tf.reduce_mean(self.reconst_err)
+
+def apply_iaf(self, iaf_layers, a, z0, logq0):
+    logq = logq0
+    z = z0
+
+    # IAF layers
+    for iaf_layer in iaf_layers:
+        m, s = iaf_layer(z, a, activation_fn=tf.nn.elu)
+        sigma = tf.sigmoid(s)
+        z = sigma * z + (1 - sigma) * m
+        logq += tf.reduce_sum(tf.nn.softplus(-s), [1])
+        z = tf.reverse(z, axis=[1])
+
+    return z, logq
 
 def get_KL(z_mean, log_z_std, z_dist):
     if z_dist == "gauss":

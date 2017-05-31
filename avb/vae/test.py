@@ -30,6 +30,15 @@ def test(encoder, decoder, x_test, config):
         'z': vae_test.z_real,
     }
 
+    params_posterior = [vae_test.z_mean, vae_test.log_z_std]
+    eps_scale = avb_test.z_std
+
+    def energy0(z, theta):
+        z_mean = theta[0]
+        log_z_std = theta[1]
+        return -get_pdf_gauss(z_mean, log_z_std, z)
+
     run_tests(decoder, stats_scalar, stats_dist,
-        vae_test.x_real, vae_test.z_mean, vae_test.z_std, config
+        vae_test.x_real, vae_test.z_real, params_posterior, energy0, config,
+        eps_scale=eps_scale
     )

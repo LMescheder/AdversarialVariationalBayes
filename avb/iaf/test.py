@@ -3,11 +3,11 @@ from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
 from avb.validate import run_tests
 from avb.validate.ais import AIS
-from avb.vae import VAE
+from avb.iaf import IAFVAE, apply_iaf
 from tqdm import tqdm
 import time
 
-def test(encoder, decoder, x_test, config):
+def test(encoder, decoder, iaf_layers, x_test, config):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
     results_dir = os.path.join(eval_dir, "results")
@@ -17,19 +17,32 @@ def test(encoder, decoder, x_test, config):
     test_nais = config['test_nais']
 
     z_sampled = tf.random_normal([batch_size, z_dim])
-    vae_test = VAE(encoder, decoder, x_test, z_sampled, config, is_training=False)
+    iaf_test = IAFVAE(encoder, decoder, iaf_layers, x_test, z_sampled, config, is_training=False)
 
     stats_scalar = {
-        'loss': vae_test.loss,
+        'loss': iaf_test.loss,
     }
 
     stats_dist = {
-        'ELBO': vae_test.ELBO,
-        'KL': vae_test.KL,
-        'reconst_err': vae_test.reconst_err,
-        'z': vae_test.z_real,
+        'ELBO': iaf_test.ELBO,
+        'KL': iaf_test.KL,
+        'reconst_err': iaf_test.reconst_err,
+        'z': iaf_test.z_real,
     }
 
+    params_posterior = [iaf_test.z_mean, iaf_test.log_z_std, iaf_test.a]
+
+    def energy0(z, theta):
+        z_mean = theta[0]
+        log_z_std = theta[1]
+        a = theta[2]
+        logq = get_pdf_gauss(z_mean, log_z_std, z)
+
+        # IAF layers
+        _, logq = apply_iaf(iaf_layers, a, z, logq)
+
+        return -logq
+
     run_tests(decoder, stats_scalar, stats_dist,
-        vae_test.x_real, vae_test.z_mean, vae_test.z_std, config
+        iaf_test.x_real, iaf_test.z_real, params_posterior, energy0, config,
     )

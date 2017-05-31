@@ -6,44 +6,55 @@ from tqdm import tqdm
 from avb.decoders import get_reconstr_err
 
 class AIS(object):
-    def __init__(self, decoder, config):
+    def __init__(self, x_test, z_real, params_posterior, decoder, energy0, config, latent_dim=None, eps_scale=None):
+        self.x_in = x_test
+        self.z0_in = z_real
+        self.params_posterior_in = params_posterior
         self.decoder = decoder
+        self.energy0 = energy0
         self.config = config
+        if latent_dim is None:
+            self.latent_dim = config['z_dim']
+        else:
+            self.latent_dim = latent_dim
+
+        if eps_scale is None:
+            self.eps_scale_in = tf.ones_like(z_real)
+        else:
+            self.eps_scale_in = eps_scale
 
         self.build_model()
 
     def build_model(self):
         batch_size = self.config['batch_size']
-        z_dim = self.config['z_dim']
         output_size = self.config['output_size']
         c_dim = self.config['c_dim']
-        # Input
-        self.x_in = tf.placeholder(tf.float32)
-        self.mean0_in = tf.placeholder(tf.float32)
-        self.std0_in = tf.placeholder(tf.float32)
+        z_dim = self.config['z_dim']
+        latent_dim = self.latent_dim
 
         # Persist on gpu for efficiency
         self.x = tf.Variable(np.zeros([batch_size, output_size, output_size, c_dim], dtype=np.float32), trainable=False)
-        self.mean0 = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
-        self.std0 = tf.Variable(np.ones([batch_size, z_dim], dtype=np.float32), trainable=False)
-        self.var0 = tf.square(self.std0)
+        self.params_posterior = [
+            tf.Variable(tf.zeros_like(p0), trainable=False)
+            for p0 in self.params_posterior_in
+        ]
+        self.eps_scale = tf.Variable(tf.ones_like(self.eps_scale_in), trainable=False)
 
         # Position and momentum variables
         mass = 1.#/self.var0
         mass_sqrt = 1.#/self.std0
-        self.z = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
-        self.p = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.z = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.p = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
 
-        self.z_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
-        self.p_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.z_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.p_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
 
-        self.p_rnd = tf.random_normal([batch_size, z_dim]) * mass_sqrt
+        self.p_rnd = tf.random_normal([batch_size, latent_dim]) * mass_sqrt
 
         self.eps = tf.placeholder(tf.float32, shape=[])
         self.beta = tf.placeholder(tf.float32, shape=[])
 
         # Hamiltoninan
-
         self.U = self.get_energy(self.z)
         self.V = 0.5 * tf.reduce_sum(tf.square(self.p)/mass, [1])
         self.H = self.U + self.V
@@ -54,17 +65,14 @@ class AIS(object):
         # Intialize
         self.init_hmc = [
             self.x.assign(self.x_in),
-            self.mean0.assign(self.mean0_in),
-            self.std0.assign(self.std0_in)
+            self.z_current.assign(self.z0_in),
+            self.eps_scale.assign(self.eps_scale_in),
+        ]
+        self.init_hmc += [
+            p.assign(p_in) for (p, p_in) in zip(self.params_posterior, self.params_posterior_in)
         ]
 
-        self.init_z = self.z_current.assign(
-            self.mean0 + self.std0 * tf.random_normal([batch_size, z_dim])
-        )
-
         self.init_hmc_step = [
-            # self.z.assign(self.z_current),
-            # self.p.assign(self.p_rnd),
             self.p_current.assign(self.p_rnd)
         ]
 
@@ -73,10 +81,10 @@ class AIS(object):
             self.p.assign(self.p_current),
         ]
         # Euler steps
-        eps_scaled = self.std0 * self.eps
+        eps_scaled = self.eps_scale * self.eps
 
         self.euler_z = self.z.assign_add(eps_scaled * self.p/mass)
-        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, z_dim])
+        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, latent_dim])
         self.euler_p = self.p.assign_sub(eps_scaled * gradU)
 
         # Accept
@@ -93,7 +101,8 @@ class AIS(object):
         return E
 
     def get_energy1(self, z):
-        decoder_out = self.decoder(z)
+        z_dim = self.config['z_dim']
+        decoder_out = self.decoder(z[:, :z_dim])
         E = get_reconstr_err(decoder_out, self.x, self.config)
         # Prior
         E += tf.reduce_sum(
@@ -103,22 +112,14 @@ class AIS(object):
         return E
 
     def get_energy0(self, z):
-        z_norm = (z - self.mean0) / self.std0
-        E = tf.reduce_sum(
-            0.5 * z_norm * z_norm + tf.log(self.std0) + 0.5 * np.log(2*np.pi), [1]
-        )
+        E = self.energy0(z, self.params_posterior)
         return E
 
-    def evaluate(self, sess, x_test, mean0=None, std0=None):
+    def evaluate(self, sess):
         is_adaptive_eps = self.config['test_is_adaptive_eps']
         nsteps = self.config['test_ais_nsteps']
         batch_size = self.config['batch_size']
         eps = self.config['test_ais_eps']
-
-        if mean0 is None:
-            mean0 = np.zeros([self.batch_size, self.z_dim], dtype=np.float32)
-        if std0 is None:
-            std0 = np.ones([self.batch_size, self.z_dim], dtype=np.float32)
 
         # logZ = sess.run(tf.reduce_sum(tf.log(self.std0), [1]))
         # logZ = self.z_dim * 0.5 * np.log(2*np.pi)
@@ -128,13 +129,7 @@ class AIS(object):
         betas = np.linspace(0, 1, nsteps+1)
         accept_rate = 1.
 
-        feed_dict = {
-            self.x_in: x_test,
-            self.mean0_in: mean0, self.std0_in: std0
-        }
-
-        sess.run(self.init_hmc, feed_dict=feed_dict)
-        sess.run(self.init_z)
+        sess.run(self.init_hmc)
 
         t = time.time()
         progress = tqdm(range(nsteps), desc="HMC")

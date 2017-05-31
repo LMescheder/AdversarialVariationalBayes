@@ -43,6 +43,7 @@ class AuxVAE(object):
         self.reconst_err = get_reconstr_err(self.decoder_out, self.x_real, config=config)
         self.KL_z = get_KL(self.z_mean, self.log_z_std)
         self.a_logq = get_pdf_gauss(self.a_mean1, self.log_a_std1, self.a1)
+        self.z_logq = get_pdf_gauss(self.z_mean, self.log_z_std, self.z_real)
         self.a_logp = get_pdf_gauss(self.a_mean2, self.log_a_std2, self.a1)
         self.KL_a = -self.a_logp + self.a_logq
         self.KL = self.KL_z + self.KL_a
