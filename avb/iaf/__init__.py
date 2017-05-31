@@ -1,6 +1,7 @@
 import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
+from avb.ops import *
 
 class IAFVAE(object):
     def __init__(self, encoder, decoder, iaf_layers, x_real, z_sampled, config, beta=1, is_training=True):
@@ -57,8 +58,3 @@ def get_KL(z_mean, log_z_std, z_dist):
         raise NotImplementedError
 
     return KL
-
-def get_pdf_gauss(loc, log_scale, sample):
-    scale = tf.exp(log_scale)
-    pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
-    return pdf

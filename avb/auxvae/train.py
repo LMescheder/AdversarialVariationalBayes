@@ -31,6 +31,7 @@ def train(encoder, decoder, encoder_aux, decoder_aux, x_train, x_val, config):
         beta = tf.minimum(tf.cast(global_step, tf.float32) / anneal_steps, 1.)
     else:
         beta = 1
+
     vae_train = AuxVAE(encoder, decoder, encoder_aux, decoder_aux, x_train,
         z_eps, x_eps, a_eps1, a_eps2, config, beta=beta)
     vae_val = AuxVAE(encoder, decoder, encoder_aux, decoder_aux, x_val,

@@ -1,6 +1,7 @@
 import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_decoder_samples
 from avb.utils import *
+from avb.ops import *
 import numpy as np
 
 class AuxVAE(object):
@@ -59,8 +60,3 @@ def get_KL(z_mean, log_z_std):
     z_std = tf.exp(log_z_std)
     KL = 0.5*tf.reduce_sum(-1 - 2*log_z_std + tf.square(z_std) + tf.square(z_mean), [1])
     return KL
-
-def get_pdf_gauss(loc, log_scale, sample):
-    scale = tf.exp(log_scale)
-    pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
-    return pdf

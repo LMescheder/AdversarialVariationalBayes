@@ -111,18 +111,22 @@ def masked_linear_layer(
         reuse=None):
     with tf.variable_scope(scope, 'MADE', [inputs], reuse=reuse) as sc:
         in_dim = int(inputs.get_shape()[1])
-        M = tf.constant(mask)
         W = tf.get_variable('weights', [in_dim, out_dim],
                             initializer=weights_initializer)
         biases = tf.get_variable('biases', [out_dim], initializer=tf.constant_initializer(0.0))
 
-        out = tf.matmul(inputs, M*W) + biases
+        out = tf.matmul(inputs, mask*W) + biases
 
         if not activation_fn is None:
             out = activation_fn(out)
 
     return out
 
+def get_pdf_gauss(loc, log_scale, sample):
+    scale = tf.exp(log_scale)
+    pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
+    return pdf
+    
 def custom_initializer(seed=None, dtype=tf.float32, trp=False):
     def _initializer(shape, dtype=dtype, partition_info=None):
         if len(shape) == 2:
