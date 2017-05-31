@@ -1,6 +1,7 @@
 import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
+from avb.ops import *
 from avb.validate import run_tests
 from avb.validate.ais import AIS
 from avb.auxvae import AuxVAE
@@ -38,21 +39,19 @@ def test(encoder, decoder, encoder_aux, decoder_aux, x_test, config):
         'z': auxvae_test.z_real,
     }
 
-    params_posterior = [auxvae_test.a_mean1, auxvae_test.log_a_std1]
+    params_posterior = [x_test, auxvae_test.a_mean1, auxvae_test.log_a_std1]
 
     def energy0(latent, theta):
-        ipdb.set_trace()
         z = latent[:, :z_dim]
         a = latent[:, z_dim:]
 
-        a_mean1 = theta[0]
-        log_a_std1 = theta[1]
-        a_logq, z_logq = graph_editor.graph_replace([auxvae_test.a_logq, auxvae_test.z_logq], {
-            auxvae_test.a_mean1: a_mean1,
-            auxvae_test.log_a_std1: log_a_std1,
-            auxvae_test.a1: a,
-            auxvae_test.z_real: z,
-        })
+        x = theta[0]
+        a_mean1 = theta[1]
+        log_a_std1 = theta[2]
+
+        a_logq = get_pdf_gauss(a_mean1, log_a_std1, a)
+        z_mean, log_z_std = encoder(x, a, is_training=False)
+        z_logq = get_pdf_gauss(z_mean, log_z_std, z)
 
         return - a_logq - z_logq
 

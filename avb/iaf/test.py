@@ -1,11 +1,13 @@
 import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
+from avb.ops import *
 from avb.validate import run_tests
 from avb.validate.ais import AIS
 from avb.iaf import IAFVAE, apply_iaf
 from tqdm import tqdm
 import time
+import ipdb
 
 def test(encoder, decoder, iaf_layers, x_test, config):
     log_dir = config['log_dir']

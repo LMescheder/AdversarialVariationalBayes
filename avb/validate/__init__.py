@@ -5,6 +5,7 @@ from avb.validate.ais import AIS
 from tqdm import tqdm
 import pickle
 import time
+import ipdb
 
 def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_posterior, energy0, config,
         latent_dim=None, eps_scale=None):
@@ -31,7 +32,6 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_
 
     # Load model
     sess.run(tf.global_variables_initializer())
-    return
 
     if load_session(sess, saver, config):
         print(" [*] Load SUCCESS")
@@ -67,11 +67,18 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_
     for i in progress_batch:
         if coord.should_stop():
             break
-        batch_images, mean0, std0 = sess.run([x_test, z_mean, z_std])
+
+        process_stats(stats,
+            save_txt=os.path.join(results_dir, "results_%d.txt" % i),
+            save_pickle=os.path.join(results_dir, "results_%d.pickle" % i)
+        )
+
         ais_res = np.zeros([ais_nchains, batch_size])
+        ais.read_batch(sess)
+
         progress_ais = tqdm(range(ais_nchains), desc="AIS")
         for j in progress_ais:
-            ais_res[j], ais_samples[j] = ais.evaluate(sess, batch_images, mean0=mean0, std0=std0)
+            ais_res[j], ais_samples[j] = ais.evaluate(sess)
             ais_lprob, ais_ess = ais.average_weights(ais_res[:j+1], axis=0)
             progress_ais.set_postfix(
                 lprob="%.2f+-%.2f" % (ais_lprob.mean(), ais_lprob.std()),
@@ -83,10 +90,6 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_
         stats["ais_ess_mean"].append(np.mean(ais_ess))
         stats["ais_ess_std"].append(np.std(ais_ess))
 
-        process_stats(stats,
-            save_txt=os.path.join(results_dir, "results_%d.txt" % i),
-            save_pickle=os.path.join(results_dir, "results_%d.pickle" % i)
-        )
 
     # End Session
     coord.request_stop()

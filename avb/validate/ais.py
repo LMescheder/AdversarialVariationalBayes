@@ -35,10 +35,10 @@ class AIS(object):
         # Persist on gpu for efficiency
         self.x = tf.Variable(np.zeros([batch_size, output_size, output_size, c_dim], dtype=np.float32), trainable=False)
         self.params_posterior = [
-            tf.Variable(tf.zeros_like(p0), trainable=False)
+            tf.Variable(tf.zeros(p0.get_shape()), trainable=False)
             for p0 in self.params_posterior_in
         ]
-        self.eps_scale = tf.Variable(tf.ones_like(self.eps_scale_in), trainable=False)
+        self.eps_scale = tf.Variable(tf.zeros([batch_size, latent_dim]), trainable=False)
 
         # Position and momentum variables
         mass = 1.#/self.var0
@@ -115,6 +115,9 @@ class AIS(object):
         E = self.energy0(z, self.params_posterior)
         return E
 
+    def read_batch(self, sess):
+        sess.run(self.init_hmc)
+
     def evaluate(self, sess):
         is_adaptive_eps = self.config['test_is_adaptive_eps']
         nsteps = self.config['test_ais_nsteps']
@@ -128,8 +131,6 @@ class AIS(object):
 
         betas = np.linspace(0, 1, nsteps+1)
         accept_rate = 1.
-
-        sess.run(self.init_hmc)
 
         t = time.time()
         progress = tqdm(range(nsteps), desc="HMC")

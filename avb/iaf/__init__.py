@@ -2,6 +2,7 @@ import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
 from avb.ops import *
+import ipdb
 
 class IAFVAE(object):
     def __init__(self, encoder, decoder, iaf_layers, x_real, z_sampled, config, beta=1, is_training=True):
@@ -45,7 +46,7 @@ class IAFVAE(object):
         self.KL_mean = tf.reduce_mean(self.KL)
         self.reconst_err_mean = tf.reduce_mean(self.reconst_err)
 
-def apply_iaf(self, iaf_layers, a, z0, logq0):
+def apply_iaf(iaf_layers, a, z0, logq0):
     logq = logq0
     z = z0
 
