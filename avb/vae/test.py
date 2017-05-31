@@ -1,6 +1,7 @@
 import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
+from avb.ops import *
 from avb.validate import run_tests
 from avb.validate.ais import AIS
 from avb.vae import VAE
@@ -31,7 +32,7 @@ def test(encoder, decoder, x_test, config):
     }
 
     params_posterior = [vae_test.z_mean, vae_test.log_z_std]
-    eps_scale = avb_test.z_std
+    eps_scale = vae_test.z_std
 
     def energy0(z, theta):
         z_mean = theta[0]

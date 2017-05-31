@@ -39,25 +39,17 @@ def test(encoder, decoder, encoder_aux, decoder_aux, x_test, config):
         'z': auxvae_test.z_real,
     }
 
-    params_posterior = [x_test, auxvae_test.a_mean1, auxvae_test.log_a_std1]
+    params_posterior = [auxvae_test.z_mean, auxvae_test.log_z_std]
 
-    def energy0(latent, theta):
-        z = latent[:, :z_dim]
-        a = latent[:, z_dim:]
+    def energy0(z, theta):
+        z_mean = theta[0]
+        log_z_std = theta[1]
+        return -get_pdf_gauss(z_mean, log_z_std, z)
 
-        x = theta[0]
-        a_mean1 = theta[1]
-        log_a_std1 = theta[2]
 
-        a_logq = get_pdf_gauss(a_mean1, log_a_std1, a)
-        z_mean, log_z_std = encoder(x, a, is_training=False)
-        z_logq = get_pdf_gauss(z_mean, log_z_std, z)
-
-        return - a_logq - z_logq
-
-    latent_samples = tf.concat([auxvae_test.z_real, auxvae_test.a1], 1)
+    latent_samples = auxvae_test.z_real
 
     run_tests(decoder, stats_scalar, stats_dist,
         auxvae_test.x_real, latent_samples, params_posterior, energy0, config,
-        latent_dim = z_dim + a_dim,
+        latent_dim = z_dim,
     )
