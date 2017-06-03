@@ -7,7 +7,7 @@ import pickle
 import time
 import ipdb
 
-def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_posterior, energy0, config,
+def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energy0, get_z0, config,
         latent_dim=None, eps_scale=None):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
@@ -22,8 +22,8 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, latent_samples, params_
         os.makedirs(results_dir)
 
     saver = tf.train.Saver()
-    ais = AIS(x_test, latent_samples, params_posterior,
-        decoder=decoder, energy0=energy0, config=config, latent_dim=latent_dim, eps_scale=eps_scale)
+    ais = AIS(x_test, params_posterior,
+        decoder=decoder, energy0=energy0, get_z0=get_z0, config=config, latent_dim=latent_dim, eps_scale=eps_scale)
 
     # Session
     sess = tf.Session()

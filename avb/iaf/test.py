@@ -32,19 +32,26 @@ def test(encoder, decoder, iaf_layers, x_test, config):
         'z': iaf_test.z_real,
     }
 
-    params_posterior = [iaf_test.z_mean, iaf_test.log_z_std, iaf_test.a]
+    params_posterior = [] #iaf_test.z_mean, iaf_test.log_z_std, iaf_test.a]
 
     def energy0(z, theta):
-        z_mean = theta[0]
-        log_z_std = theta[1]
-        a = theta[2]
-        logq = get_pdf_gauss(z_mean, log_z_std, z)
+        E = tf.reduce_sum(
+            0.5 * tf.square(z) + 0.5 * np.log(2*np.pi), [1]
+        )
+        return E
+        # z_mean = theta[0]
+        # log_z_std = theta[1]
+        # a = theta[2]
+        # logq = get_pdf_gauss(z_mean, log_z_std, z)
+        #
+        # # IAF layers
+        # _, logq = apply_iaf(iaf_layers, a, z, logq)
+        #
+        # return -logq
 
-        # IAF layers
-        _, logq = apply_iaf(iaf_layers, a, z, logq)
-
-        return -logq
+    def get_z0(theta):
+        return  tf.random_normal([batch_size, z_dim])
 
     run_tests(decoder, stats_scalar, stats_dist,
-        iaf_test.x_real, iaf_test.z_real, params_posterior, energy0, config,
+        iaf_test.x_real, params_posterior, energy0, get_z0, config,
     )

@@ -39,7 +39,12 @@ def test(encoder, decoder, x_test, config):
         log_z_std = theta[1]
         return -get_pdf_gauss(z_mean, log_z_std, z)
 
+    def get_z0(theta):
+        z_mean = theta[0]
+        z_std = tf.exp(theta[1])
+        return z_mean + z_std * tf.random_normal([batch_size, z_dim])
+
     run_tests(decoder, stats_scalar, stats_dist,
-        vae_test.x_real, vae_test.z_real, params_posterior, energy0, config,
+        vae_test.x_real, params_posterior, energy0, get_z0, config,
         eps_scale=eps_scale
     )
