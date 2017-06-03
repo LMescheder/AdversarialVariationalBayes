@@ -126,7 +126,11 @@ def get_pdf_gauss(loc, log_scale, sample):
     scale = tf.exp(log_scale)
     pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
     return pdf
-    
+
+def get_pdf_stdgauss(sample):
+    pdf = -tf.reduce_sum(0.5 * tf.square(sample) + 0.5*np.log(2*np.pi), [1])
+    return pdf
+
 def custom_initializer(seed=None, dtype=tf.float32, trp=False):
     def _initializer(shape, dtype=dtype, partition_info=None):
         if len(shape) == 2:
