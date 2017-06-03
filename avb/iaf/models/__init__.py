@@ -26,6 +26,7 @@ def get_iaf_layer(model_name, config, scope='iaf_layer'):
         scope, iaf_layer, config=config
     )
 
+# MADE layer
 def iaf_layer(z_in, a_in, config, activation_fn=tf.nn.relu):
     h_dim = config['iaf_h_dim']
     z_dim = config['z_dim']

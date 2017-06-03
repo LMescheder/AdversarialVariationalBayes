@@ -54,16 +54,7 @@ def apply_iaf(iaf_layers, a, z0, logq0):
         m, s = iaf_layer(z, a, activation_fn=tf.nn.elu)
         sigma = tf.sigmoid(s)
         z = sigma * z + (1 - sigma) * m
-        logq += tf.reduce_sum(tf.nn.softplus(-s), [1])
+        logq += tf.reduce_sum(tf.nn.softplus(-s), [1]) # = -log(sigma)
         z = tf.reverse(z, axis=[1])
 
     return z, logq
-
-def get_KL(z_mean, log_z_std, z_dist):
-    if z_dist == "gauss":
-        z_std = tf.exp(log_z_std)
-        KL = 0.5*tf.reduce_sum(-1 - 2*log_z_std + z_std*z_std + z_mean*z_mean, [1])
-    else:
-        raise NotImplementedError
-
-    return KL
