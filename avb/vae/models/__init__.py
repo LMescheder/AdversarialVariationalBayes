@@ -1,10 +1,12 @@
 import tensorflow as tf
 
 from avb.vae.models import (
+    full0,
     conv0, conv1
 )
 
 encoder_dict = {
+    'full0': full0.encoder,
     'conv0': conv0.encoder,
     'conv1': conv1.encoder,
 }
