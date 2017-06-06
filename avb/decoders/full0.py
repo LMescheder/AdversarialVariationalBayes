@@ -12,7 +12,9 @@ def decoder(z, config, num_out=1, is_training=True):
     s = output_size
 
     # Network
-    net = slim.fully_connected(z, 768, activation_fn=tf.nn.softplus, scope="fc_0")
+    net = z
+    net = slim.fully_connected(net, 300, activation_fn=tf.nn.softplus, scope="fc_0")
+    net = slim.fully_connected(net, 300, activation_fn=tf.nn.softplus, scope="fc_1")
     output = [
         slim.fully_connected(net, s*s*c_dim, activation_fn=None, scope="x_%i" % i) for i in range(num_out)
     ]

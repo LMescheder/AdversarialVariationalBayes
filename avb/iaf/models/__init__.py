@@ -3,12 +3,13 @@ from tensorflow.contrib import slim
 import numpy as np
 from avb.iaf.models import (
     full0,
-    conv1, conv3
+    conv0, conv1, conv3
 )
 from avb.ops import masked_linear_layer
 
 encoder_dict = {
     'full0': full0.encoder,
+    'conv0': conv0.encoder,
     'conv1': conv1.encoder,
     'conv3': conv3.encoder,
 }

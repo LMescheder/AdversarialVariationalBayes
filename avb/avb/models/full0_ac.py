@@ -21,7 +21,8 @@ def encoder(x, config, eps=None, is_training=True):
         eps = tf.random_normal(tf.stack([eps_nbasis, batch_size, eps_dim]))
 
     net = flatten_spatial(x)
-    net = slim.fully_connected(net, 768, activation_fn=tf.nn.softplus, scope="fc_0")
+    net = slim.fully_connected(net, 300, activation_fn=tf.nn.softplus, scope="fc_0")
+    net = slim.fully_connected(net, 300, activation_fn=tf.nn.softplus, scope="fc_1")
 
     z0 = slim.fully_connected(net, z_dim, activation_fn=None, scope='z0',
         weights_initializer=tf.truncated_normal_initializer(stddev=1e-5))
