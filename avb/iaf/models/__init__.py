@@ -51,7 +51,7 @@ def iaf_layer(z_in, a_in, config, activation_fn=tf.nn.relu):
         masked_linear_layer(net, z_dim, M2, activation_fn=None)
         + masked_linear_layer(z_in, z_dim, M3, activation_fn=None)
     )
-    s = 2. + 0.1 * (
+    s = 1. + 0.01 * (
         masked_linear_layer(net, z_dim, M2, activation_fn=None)
         + masked_linear_layer(z_in, z_dim, M3, activation_fn=None)
     )
