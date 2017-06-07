@@ -84,6 +84,7 @@ class AIS(object):
         # Euler steps
         eps_scaled = self.eps_scale * self.eps
 
+
         self.euler_z = self.z.assign_add(eps_scaled * self.p/mass)
         gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, latent_dim])
         self.euler_p = self.p.assign_sub(eps_scaled * gradU)

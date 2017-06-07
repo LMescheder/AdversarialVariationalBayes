@@ -20,13 +20,12 @@ def encoder(x, config, is_training=True):
             activation_fn=None, kernel_size=(3,3), stride=1,
             normalizer_fn=None, normalizer_params=bn_kwargs)
 
+    net = x
     with conv2d_argscope:
-        net = slim.conv2d(x, 16)
-
         # 2-strided resnet block
-        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu, stride=2)
-        res = slim.conv2d(res, 32)
-        net = tf.nn.elu(slim.conv2d(net, 32, stride=2) + res)
+        res = slim.conv2d(net, 16, activation_fn=tf.nn.elu, stride=2)
+        res = slim.conv2d(res, 16)
+        net = tf.nn.elu(slim.conv2d(net, 16, stride=2) + res)
 
         # 1-strided resnet block
         net = slim.conv2d(net, 32)
