@@ -1,19 +1,22 @@
 import tensorflow as tf
 
 from avb.auxvae.models import (
-    conv1
+    conv1, full0
 )
 
 encoder_dict = {
+    'full0': full0.encoder,
     'conv1': conv1.encoder,
 }
 
 
 encoder_aux_dict = {
+    'full0': full0.encoder_aux,
     'conv1': conv1.encoder_aux,
 }
 
 decoder_aux_dict = {
+    'full0': full0.decoder_aux,
     'conv1': conv1.decoder_aux,
 }
 
