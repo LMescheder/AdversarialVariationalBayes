@@ -26,7 +26,8 @@ class IAFVAE(object):
         self.z_std = tf.exp(self.log_z_std)
         z = self.z_mean + z_sampled * self.z_std
 
-        self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
+        # self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
+        self.logq =  get_pdf_gauss(0., 0., self.z_sampled) - tf.reduce_sum(self.log_z_std, [1])
 
         # IAF layers
         self.z_real, self.logq = apply_iaf(self.iaf_layers, self.a, z, self.logq)

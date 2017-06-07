@@ -19,20 +19,41 @@ def decoder(z, config, num_out=1, is_training=True):
     net = tf.reshape(net, [-1, s8, s8, 32])
 
     conv2dtrp_argscope = slim.arg_scope([conv2d_transpose],
-                            activation_fn=tf.nn.softplus, kernel_size=(3,3), stride=(2, 2))
-    with conv2dtrp_argscope:
-        dnet = slim.conv2d(net, 32, kernel_size=(3, 3), activation_fn=tf.nn.softplus)
-        net = tf.nn.softplus(net + dnet)
-        net = conv2d_transpose(net, [s4, s4, 32], scope="conv_0")
+                            activation_fn=None, kernel_size=(3,3), stride=(2, 2))
+    conv2d_argscope = slim.arg_scope([slim.conv2d],
+            activation_fn=None, kernel_size=(3,3), stride=1)
 
-        dnet = slim.conv2d(net, 32, kernel_size=(3, 3), activation_fn=tf.nn.softplus)
-        net = tf.nn.softplus(net + dnet)
-        net = conv2d_transpose(net, [s2, s2, 16], scope="conv_1")
 
-        dnet = slim.conv2d(net, 16, kernel_size=(3, 3), activation_fn=tf.nn.softplus)
-        net = tf.nn.softplus(net + dnet)
+    with conv2d_argscope, conv2dtrp_argscope:
+        # 2-strided resnet block
+        res = conv2d_transpose(net, [s4, s4, 32], activation_fn=tf.nn.elu, stride=[2, 2])
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(conv2d_transpose(net, [s4, s4, 32], stride=[2,2]) + res)
+
+        # 1-strided resnet block
+        net = slim.conv2d(net, 32)
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(net + res)
+
+        # 2-strided resnet block
+        res = conv2d_transpose(net, [s2, s2, 32], activation_fn=tf.nn.elu, stride=[2, 2])
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(conv2d_transpose(net, [s2, s2, 32], stride=[2,2]) + res)
+
+        # 1-strided resnet block
+        net = slim.conv2d(net, 32)
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(net + res)
+
+        # 2-strided resnet block
+        res = conv2d_transpose(net, [s, s, 16], activation_fn=tf.nn.elu, stride=[2, 2])
+        res = slim.conv2d(res, 16)
+        net = tf.nn.elu(conv2d_transpose(net, [s, s, 16], stride=[2,2]) + res)
+
         output = [
-            conv2d_transpose(net, [s, s, c_dim], activation_fn=None, scope="x_%i" % i)
+            slim.conv2d(net, c_dim, activation_fn=None, scope="x_%i" % i)
             for i in range(num_out)
         ]
 
