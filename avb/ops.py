@@ -58,7 +58,7 @@ def add_linear(
         reuse=None):
     with tf.variable_scope(scope, 'AddLinear', [inputs], reuse=reuse) as sc:
         shape_targets = targets.get_shape()
-        targets_size = int(shape_targets[1]) * int(shape_targets[2]) * int(shape_targets[3])
+        targets_size = int(np.prod([int(s) for s in shape_targets[1:]]))
         outputs = slim.fully_connected(inputs, targets_size, activation_fn=None, weights_initializer=weights_initializer)
         outputs = tf.reshape(outputs, tf.shape(targets))
         outputs = outputs + targets

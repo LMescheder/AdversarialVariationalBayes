@@ -11,6 +11,8 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energ
         latent_dim=None, eps_scale=None):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
+    z_dim = config['z_dim']
+
     results_dir = os.path.join(eval_dir, "results")
     if latent_dim is None:
         latent_dim = config['z_dim']
@@ -96,7 +98,7 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energ
     coord.join(threads)
     sess.close()
 
-    ais_samples = ais_samples.reshape(-1, z_dim)
+    # ais_samples = ais_samples.reshape(-1, z_dim)
 
     # Write statistics string
     statistics_str = process_stats(stats,
