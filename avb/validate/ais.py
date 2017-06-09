@@ -6,17 +6,13 @@ from tqdm import tqdm
 from avb.decoders import get_reconstr_err
 
 class AIS(object):
-    def __init__(self, x_test, params_posterior, decoder, energy0, get_z0, config, latent_dim=None, eps_scale=None):
+    def __init__(self, x_test, params_posterior, decoder, energy0, get_z0, config, eps_scale=None):
         self.x_in = x_test
         self.params_posterior_in = params_posterior
         self.decoder = decoder
         self.energy0 = energy0
         self.get_z0 = get_z0
         self.config = config
-        if latent_dim is None:
-            self.latent_dim = config['z_dim']
-        else:
-            self.latent_dim = latent_dim
 
         if eps_scale is None:
             self.eps_scale_in = tf.ones([config['batch_size'], config['z_dim']])
@@ -30,7 +26,6 @@ class AIS(object):
         output_size = self.config['output_size']
         c_dim = self.config['c_dim']
         z_dim = self.config['z_dim']
-        latent_dim = self.latent_dim
 
         # Persist on gpu for efficiency
         self.x = tf.Variable(np.zeros([batch_size, output_size, output_size, c_dim], dtype=np.float32), trainable=False)
@@ -38,18 +33,18 @@ class AIS(object):
             tf.Variable(tf.zeros(p0.get_shape()), trainable=False)
             for p0 in self.params_posterior_in
         ]
-        self.eps_scale = tf.Variable(tf.zeros([batch_size, latent_dim]), trainable=False)
+        self.eps_scale = tf.Variable(tf.zeros([batch_size, z_dim]), trainable=False)
 
         # Position and momentum variables
         mass = 1.#/self.var0
         mass_sqrt = 1.#/self.std0
-        self.z = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
-        self.p = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.z = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.p = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
 
-        self.z_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
-        self.p_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.z_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.p_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
 
-        self.p_rnd = tf.random_normal([batch_size, latent_dim]) * mass_sqrt
+        self.p_rnd = tf.random_normal([batch_size, z_dim]) * mass_sqrt
 
         self.eps = tf.placeholder(tf.float32, shape=[])
         self.beta = tf.placeholder(tf.float32, shape=[])
@@ -86,7 +81,7 @@ class AIS(object):
 
 
         self.euler_z = self.z.assign_add(eps_scaled * self.p/mass)
-        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, latent_dim])
+        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, z_dim])
         self.euler_p = self.p.assign_sub(eps_scaled * gradU)
 
         # Accept

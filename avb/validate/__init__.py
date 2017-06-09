@@ -8,14 +8,13 @@ import time
 import ipdb
 
 def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energy0, get_z0, config,
-        latent_dim=None, eps_scale=None):
+        eps_scale=None):
     log_dir = config['log_dir']
     eval_dir = config['eval_dir']
     z_dim = config['z_dim']
 
     results_dir = os.path.join(eval_dir, "results")
-    if latent_dim is None:
-        latent_dim = config['z_dim']
+
     batch_size = config['batch_size']
     ais_nchains = config['test_ais_nchains']
     test_nais = config['test_nais']
@@ -25,7 +24,7 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energ
 
     saver = tf.train.Saver()
     ais = AIS(x_test, params_posterior,
-        decoder=decoder, energy0=energy0, get_z0=get_z0, config=config, latent_dim=latent_dim, eps_scale=eps_scale)
+        decoder=decoder, energy0=energy0, get_z0=get_z0, config=config, eps_scale=eps_scale)
 
     # Session
     sess = tf.Session()
@@ -51,7 +50,7 @@ def run_tests(decoder, stats_scalar, stats_dist, x_test, params_posterior, energ
     start_time = time.time()
     nbreak = 200
 
-    ais_samples = np.zeros([ais_nchains, batch_size, latent_dim])
+    ais_samples = np.zeros([ais_nchains, batch_size, z_dim])
 
     progress_batch = tqdm(range(nbreak), desc="Test")
     for i in progress_batch:
