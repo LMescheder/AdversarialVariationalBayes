@@ -56,7 +56,7 @@ def main():
     config = vars(args)
     config['gf_dim'] = 64
     config['df_dim'] = 64
-    config['test_is_adaptive_eps'] = True
+    config['test_is_adaptive_eps'] = False
 
     pp.pprint(config)
 
