@@ -76,6 +76,6 @@ def adversary(z, x, config, is_training=True):
 #     net =  slim.fully_connected(net, 512, activation_fn=tf.nn.elu)
     net =  slim.fully_connected(net, 1, activation_fn=None)
     net = tf.squeeze(net, axis=1)
-#     net += tf.reduce_sum(tf.square(z), axis=1)
+    net += tf.reduce_sum(tf.square(z), axis=1)
 
     return net
