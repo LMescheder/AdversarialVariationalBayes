@@ -41,10 +41,15 @@ class AuxVAE(object):
 
         # Primal loss
         self.reconst_err = get_reconstr_err(self.decoder_out, self.x_real, config=config)
-        self.KL_z = get_KL(self.z_mean, self.log_z_std)
+
+        self.z_logq = get_pdf_gauss(self.z_mean, self.log_z_std, self.z_real)
+        self.z_logp = get_pdf_stdgauss(self.z_real)
+        self.KL_z = -self.z_logp + self.z_logq
+
         self.a_logq = get_pdf_gauss(self.a_mean1, self.log_a_std1, self.a1)
         self.a_logp = get_pdf_gauss(self.a_mean2, self.log_a_std2, self.a1)
         self.KL_a = -self.a_logp + self.a_logq
+
         self.KL = self.KL_z + self.KL_a
 
         self.ELBO = -self.reconst_err - self.KL
@@ -54,9 +59,3 @@ class AuxVAE(object):
         self.ELBO_mean = tf.reduce_mean(self.ELBO)
         self.KL_mean = tf.reduce_mean(self.KL)
         self.reconst_err_mean = tf.reduce_mean(self.reconst_err)
-
-
-def get_KL(z_mean, log_z_std):
-    z_std = tf.exp(log_z_std)
-    KL = 0.5*tf.reduce_sum(-1 - 2*log_z_std + tf.square(z_std) + tf.square(z_mean), [1])
-    return KL

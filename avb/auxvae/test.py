@@ -46,10 +46,11 @@ def test(encoder, decoder, encoder_aux, decoder_aux, x_test, config):
         log_z_std = theta[1]
         return -get_pdf_gauss(z_mean, log_z_std, z)
 
-
-    latent_samples = auxvae_test.z_real
+    def get_z0(theta):
+        z_mean = theta[0]
+        z_std = tf.exp(theta[1])
+        return z_mean + z_std * tf.random_normal([batch_size, z_dim])
 
     run_tests(decoder, stats_scalar, stats_dist,
-        auxvae_test.x_real, latent_samples, params_posterior, energy0, config,
-        latent_dim = z_dim,
+        auxvae_test.x_real, params_posterior, energy0, get_z0, config
     )

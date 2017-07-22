@@ -19,25 +19,46 @@ def encoder(x, config, eps=None, is_training=True):
         batch_size = tf.shape(x)[0]
         eps = tf.random_normal(tf.stack([eps_nbasis, batch_size, eps_dim]))
 
-    # Coefficients
-    n_down = max(min(int(math.log(output_size, 2)) - 2, 4), 0)
-    filter_strides = [(1, 1)] * (4 - n_down) + [(2, 2)] * n_down
-
-    bn_kwargs = {
-        'scale': True, 'center':True, 'is_training': is_training, 'updates_collections': None
-    }
+    conv2dtrp_argscope = slim.arg_scope([conv2d_transpose],
+                            activation_fn=None, kernel_size=(3,3), stride=(2, 2))
+    conv2d_argscope = slim.arg_scope([slim.conv2d],
+            activation_fn=None, kernel_size=(3,3), stride=1)
 
     conv2d_argscope = slim.arg_scope([slim.conv2d],
-            activation_fn=tf.nn.elu, kernel_size=(5, 5),
-            normalizer_fn=slim.batch_norm, normalizer_params=bn_kwargs)
+            activation_fn=None, kernel_size=(3,3), stride=1)
 
+    net = x
     with conv2d_argscope:
-        net = slim.conv2d(x, 1*df_dim, stride=filter_strides[0], scope="conv_0")
-        net = slim.conv2d(net, 2*df_dim, stride=filter_strides[1], scope="conv_1")
-        net = slim.conv2d(net, 4*df_dim, stride=filter_strides[2], scope="conv_2")
-        net = slim.conv2d(net, 8*df_dim, stride=filter_strides[3], normalizer_fn=None, scope="conv_3")
+        # 2-strided resnet block
+        res = slim.conv2d(net, 16, activation_fn=tf.nn.elu, stride=2)
+        res = slim.conv2d(res, 16)
+        net = tf.nn.elu(slim.conv2d(net, 16, stride=2) + res)
+
+        # 1-strided resnet block
+        net = slim.conv2d(net, 32)
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(net + res)
+
+        # 2-strided resnet block
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu, stride=2)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(slim.conv2d(net, 32, stride=2) + res)
+
+        # 1-strided resnet block
+        net = slim.conv2d(net, 32)
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(net + res)
+
+        # 2-strided resnet block
+        res = slim.conv2d(net, 32, activation_fn=tf.nn.elu, stride=2)
+        res = slim.conv2d(res, 32)
+        net = tf.nn.elu(slim.conv2d(net, 32, stride=2) + res)
 
     net = flatten_spatial(net)
+    net = slim.fully_connected(net, 450, activation_fn=tf.nn.elu)
+
 
     z0 = slim.fully_connected(net, z_dim, activation_fn=None, scope='z0',
         weights_initializer=tf.truncated_normal_initializer(stddev=1e-5))
@@ -48,11 +69,7 @@ def encoder(x, config, eps=None, is_training=True):
         a = tf.nn.elu(a - 5.) + 1.
         a_vec.append(a)
 
-    # Sample and Moments
-    if eps is None:
-        batch_size = tf.shape(x)[0]
-        eps = tf.random_normal(tf.stack([eps_nbasis, batch_size, eps_dim]))
-
+    # Noise basis
     v_vec = []
     for i in range(eps_nbasis):
         with tf.variable_scope("eps_%d" % i):

@@ -58,7 +58,7 @@ def add_linear(
         reuse=None):
     with tf.variable_scope(scope, 'AddLinear', [inputs], reuse=reuse) as sc:
         shape_targets = targets.get_shape()
-        targets_size = int(shape_targets[1]) * int(shape_targets[2]) * int(shape_targets[3])
+        targets_size = int(np.prod([int(s) for s in shape_targets[1:]]))
         outputs = slim.fully_connected(inputs, targets_size, activation_fn=None, weights_initializer=weights_initializer)
         outputs = tf.reshape(outputs, tf.shape(targets))
         outputs = outputs + targets
@@ -126,7 +126,11 @@ def get_pdf_gauss(loc, log_scale, sample):
     scale = tf.exp(log_scale)
     pdf = -tf.reduce_sum(0.5 * tf.square((sample - loc)/scale) + log_scale + 0.5*np.log(2*np.pi), [1])
     return pdf
-    
+
+def get_pdf_stdgauss(sample):
+    pdf = -tf.reduce_sum(0.5 * tf.square(sample) + 0.5*np.log(2*np.pi), [1])
+    return pdf
+
 def custom_initializer(seed=None, dtype=tf.float32, trp=False):
     def _initializer(shape, dtype=dtype, partition_info=None):
         if len(shape) == 2:

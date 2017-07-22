@@ -1,19 +1,22 @@
 import tensorflow as tf
 
 from avb.avb.models import (
-    conv0, conv1, conv2, conv0_ac, conv1_ac
+    full0, full0_ac,
+    conv0, conv1, conv2, conv0_ac, conv1_ac, conv3_ac
 )
 
 encoder_dict = {
+    'full0': full0.encoder,
     'conv0': conv0.encoder,
     'conv1': conv1.encoder,
     'conv2': conv2.encoder,
-
 }
 
 encoder_ac_dict = {
+    'full0_ac': full0_ac.encoder,
     'conv0_ac': conv0_ac.encoder,
     'conv1_ac': conv1_ac.encoder,
+    'conv3_ac': conv3_ac.encoder,
 }
 
 adversary_dict = {

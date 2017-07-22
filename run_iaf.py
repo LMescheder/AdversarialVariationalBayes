@@ -5,16 +5,15 @@ import argparse
 
 from avb.utils import pp
 from avb import inputs
-from avb.avb.train import train
-from avb.avb.test import test
+from avb.iaf.train import train
+from avb.iaf.test import test
 from avb.decoders import get_decoder
-from avb.avb.models import get_encoder, get_adversary
+from avb.iaf.models import get_encoder, get_iaf_layer
 import tensorflow as tf
 
 parser = argparse.ArgumentParser(description='Train and run a avae.')
 parser.add_argument("--nsteps", default=200000, type=int, help="Iterations to train.")
 parser.add_argument("--learning-rate", default=1e-4, type=float, help="Learning rate of for adam.")
-parser.add_argument("--learning-rate-adversary", default=1e-4, type=float, help="Learning rate of for adam.")
 parser.add_argument("--ntest", default=100, type=int, help="How often to run test code.")
 
 parser.add_argument("--batch-size", default=64, type=int, help="The size of batch images.")
@@ -29,10 +28,11 @@ parser.add_argument("--c-dim", default=3, type=int, help="Dimension of image col
 parser.add_argument("--z-dim", default=100, type=int, help="Dimension of latent space.")
 parser.add_argument("--z-dist", default="gauss", type=str, help="Prior distribution of latent space.")
 parser.add_argument("--cond-dist", default="gauss", type=str, help="Conditional distribution.")
-parser.add_argument("--eps-dim", default=0, type=int, help="Dimension of noise for encoder per pixel. ")
-parser.add_argument("--eps-nbasis", default=32, type=int, help="Number of noise basis vectors (if needed).")
 parser.add_argument("--anneal-steps", default="0", type=int, help="How many steps to use for annealing.")
 parser.add_argument("--is-anneal", default=False, action='store_true', help="True for training, False for testing.")
+parser.add_argument("--iaf-nlayers", default=8, type=int, help="")
+parser.add_argument("--iaf-a-dim", default=32, type=int, help="")
+parser.add_argument("--iaf-h-dim", default=128, type=int, help="")
 
 parser.add_argument("--dataset", default="celebA", type=str, help="The name of dataset.")
 parser.add_argument("--data-dir", default="data", type=str, help="Path to the data directory.")
@@ -44,7 +44,6 @@ parser.add_argument("--eval-dir", default="eval", type=str, help="Directory wher
 
 parser.add_argument("--is-train", default=False, action='store_true', help="True for training, False for testing.")
 parser.add_argument("--is-01-range", default=False,  action='store_true', help="If image is constrained to values between 0 and 1.")
-parser.add_argument("--is-ac", default=False, action='store_true', help="Wether to use local normalization (only supported by some models).")
 
 parser.add_argument("--test-nite", default=0, type=int, help="Number of iterations of ite.")
 parser.add_argument("--test-nais", default=10, type=int, help="Number of iterations of ais.")
@@ -59,7 +58,8 @@ def main():
     config = vars(args)
     config['gf_dim'] = 64
     config['df_dim'] = 64
-    config['test_is_adaptive_eps'] = False
+    config['test_is_adaptive_eps'] = True
+
     pp.pprint(config)
 
     if not os.path.exists(args.log_dir):
@@ -69,16 +69,18 @@ def main():
 
     decoder = get_decoder(args.decoder, config)
     encoder = get_encoder(args.encoder, config)
-    adversary = get_adversary(args.adversary, config)
+    iaf_layers = [
+        get_iaf_layer(args.encoder, config, 'iaf_layer_%d' % i) for i in range(config['iaf_nlayers'])
+    ]
 
     if args.is_train:
         x_train = inputs.get_inputs('train', config)
         x_val = inputs.get_inputs('val', config)
 
-        train(encoder, decoder, adversary, x_train, x_val, config)
+        train(encoder, decoder, iaf_layers, x_train, x_val, config)
     else:
         x_test = inputs.get_inputs('test', config)
-        test(encoder, decoder, adversary, x_test, config)
+        test(encoder, decoder, iaf_layers, x_test, config)
 
 if __name__ == '__main__':
     main()

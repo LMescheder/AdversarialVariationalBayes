@@ -2,7 +2,6 @@ import tensorflow as tf
 from avb.decoders import get_reconstr_err, get_decoder_mean, get_interpolations
 from avb.utils import *
 from avb.ops import *
-import ipdb
 
 class IAFVAE(object):
     def __init__(self, encoder, decoder, iaf_layers, x_real, z_sampled, config, beta=1, is_training=True):
@@ -27,7 +26,8 @@ class IAFVAE(object):
         self.z_std = tf.exp(self.log_z_std)
         z = self.z_mean + z_sampled * self.z_std
 
-        self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
+        # self.logq = get_pdf_gauss(self.z_mean, self.log_z_std, z)
+        self.logq =  get_pdf_gauss(0., 0., self.z_sampled) - tf.reduce_sum(self.log_z_std, [1])
 
         # IAF layers
         self.z_real, self.logq = apply_iaf(self.iaf_layers, self.a, z, self.logq)
@@ -55,16 +55,7 @@ def apply_iaf(iaf_layers, a, z0, logq0):
         m, s = iaf_layer(z, a, activation_fn=tf.nn.elu)
         sigma = tf.sigmoid(s)
         z = sigma * z + (1 - sigma) * m
-        logq += tf.reduce_sum(tf.nn.softplus(-s), [1])
+        logq += tf.reduce_sum(tf.nn.softplus(-s), [1]) # = -log(sigma)
         z = tf.reverse(z, axis=[1])
 
     return z, logq
-
-def get_KL(z_mean, log_z_std, z_dist):
-    if z_dist == "gauss":
-        z_std = tf.exp(log_z_std)
-        KL = 0.5*tf.reduce_sum(-1 - 2*log_z_std + z_std*z_std + z_mean*z_mean, [1])
-    else:
-        raise NotImplementedError
-
-    return KL

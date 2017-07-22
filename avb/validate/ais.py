@@ -6,20 +6,16 @@ from tqdm import tqdm
 from avb.decoders import get_reconstr_err
 
 class AIS(object):
-    def __init__(self, x_test, z_real, params_posterior, decoder, energy0, config, latent_dim=None, eps_scale=None):
+    def __init__(self, x_test, params_posterior, decoder, energy0, get_z0, config, eps_scale=None):
         self.x_in = x_test
-        self.z0_in = z_real
         self.params_posterior_in = params_posterior
         self.decoder = decoder
         self.energy0 = energy0
+        self.get_z0 = get_z0
         self.config = config
-        if latent_dim is None:
-            self.latent_dim = config['z_dim']
-        else:
-            self.latent_dim = latent_dim
 
         if eps_scale is None:
-            self.eps_scale_in = tf.ones_like(z_real)
+            self.eps_scale_in = tf.ones([config['batch_size'], config['z_dim']])
         else:
             self.eps_scale_in = eps_scale
 
@@ -30,7 +26,6 @@ class AIS(object):
         output_size = self.config['output_size']
         c_dim = self.config['c_dim']
         z_dim = self.config['z_dim']
-        latent_dim = self.latent_dim
 
         # Persist on gpu for efficiency
         self.x = tf.Variable(np.zeros([batch_size, output_size, output_size, c_dim], dtype=np.float32), trainable=False)
@@ -38,18 +33,18 @@ class AIS(object):
             tf.Variable(tf.zeros(p0.get_shape()), trainable=False)
             for p0 in self.params_posterior_in
         ]
-        self.eps_scale = tf.Variable(tf.zeros([batch_size, latent_dim]), trainable=False)
+        self.eps_scale = tf.Variable(tf.zeros([batch_size, z_dim]), trainable=False)
 
         # Position and momentum variables
         mass = 1.#/self.var0
         mass_sqrt = 1.#/self.std0
-        self.z = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
-        self.p = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.z = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.p = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
 
-        self.z_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
-        self.p_current = tf.Variable(np.zeros([batch_size, latent_dim], dtype=np.float32), trainable=False)
+        self.z_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
+        self.p_current = tf.Variable(np.zeros([batch_size, z_dim], dtype=np.float32), trainable=False)
 
-        self.p_rnd = tf.random_normal([batch_size, latent_dim]) * mass_sqrt
+        self.p_rnd = tf.random_normal([batch_size, z_dim]) * mass_sqrt
 
         self.eps = tf.placeholder(tf.float32, shape=[])
         self.beta = tf.placeholder(tf.float32, shape=[])
@@ -63,14 +58,15 @@ class AIS(object):
         self.H_current = self.U_current + self.V_current
 
         # Intialize
-        self.init_hmc = [
+        self.init_batch = [
             self.x.assign(self.x_in),
-            self.z_current.assign(self.z0_in),
             self.eps_scale.assign(self.eps_scale_in),
         ]
-        self.init_hmc += [
+        self.init_batch += [
             p.assign(p_in) for (p, p_in) in zip(self.params_posterior, self.params_posterior_in)
         ]
+
+        self.init_hmc =  self.z_current.assign(self.get_z0(self.params_posterior))
 
         self.init_hmc_step = [
             self.p_current.assign(self.p_rnd)
@@ -83,8 +79,9 @@ class AIS(object):
         # Euler steps
         eps_scaled = self.eps_scale * self.eps
 
+
         self.euler_z = self.z.assign_add(eps_scaled * self.p/mass)
-        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, latent_dim])
+        gradU = tf.reshape(tf.gradients(self.U, self.z), [batch_size, z_dim])
         self.euler_p = self.p.assign_sub(eps_scaled * gradU)
 
         # Accept
@@ -101,8 +98,7 @@ class AIS(object):
         return E
 
     def get_energy1(self, z):
-        z_dim = self.config['z_dim']
-        decoder_out = self.decoder(z[:, :z_dim])
+        decoder_out = self.decoder(z)
         E = get_reconstr_err(decoder_out, self.x, self.config)
         # Prior
         E += tf.reduce_sum(
@@ -116,7 +112,7 @@ class AIS(object):
         return E
 
     def read_batch(self, sess):
-        sess.run(self.init_hmc)
+        sess.run(self.init_batch)
 
     def evaluate(self, sess):
         is_adaptive_eps = self.config['test_is_adaptive_eps']
@@ -133,6 +129,9 @@ class AIS(object):
         accept_rate = 1.
 
         t = time.time()
+
+        sess.run(self.init_hmc)
+
         progress = tqdm(range(nsteps), desc="HMC")
         for i in progress:
             f0 = -sess.run(self.U_current, feed_dict={self.beta: betas[i]})

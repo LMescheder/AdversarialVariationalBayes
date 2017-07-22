@@ -1,13 +1,16 @@
 import tensorflow as tf
 import numpy as np
 from avb.decoders import (
-    conv0, conv1, conv2,
+    full0,
+    conv0, conv1, conv2, conv3,
 )
 
 decoder_dict = {
     'conv0': conv0.decoder,
     'conv1': conv1.decoder,
     'conv2': conv2.decoder,
+    'conv3': conv3.decoder,
+    'full0': full0.decoder,
 }
 
 def get_decoder(model_name, config, scope='decoder'):
