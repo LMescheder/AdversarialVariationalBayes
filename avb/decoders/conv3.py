@@ -19,9 +19,9 @@ def decoder(z, config, num_out=1, is_training=True):
     net = tf.reshape(net, [-1, s8, s8, 32])
 
     conv2dtrp_argscope = slim.arg_scope([conv2d_transpose],
-                            activation_fn=None, kernel_size=(3,3), stride=(2, 2))
+                            activation_fn=None, kernel_size=(5,5), stride=(2, 2))
     conv2d_argscope = slim.arg_scope([slim.conv2d],
-            activation_fn=None, kernel_size=(3,3), stride=1)
+            activation_fn=None, kernel_size=(5,5), stride=1)
 
 
     with conv2d_argscope, conv2dtrp_argscope:

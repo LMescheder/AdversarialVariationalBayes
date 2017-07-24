@@ -20,12 +20,12 @@ def encoder(x, config, eps=None, is_training=True):
         eps = tf.random_normal(tf.stack([eps_nbasis, batch_size, eps_dim]))
 
     conv2dtrp_argscope = slim.arg_scope([conv2d_transpose],
-                            activation_fn=None, kernel_size=(3,3), stride=(2, 2))
+                            activation_fn=None, kernel_size=(5,5), stride=(2, 2))
     conv2d_argscope = slim.arg_scope([slim.conv2d],
-            activation_fn=None, kernel_size=(3,3), stride=1)
+            activation_fn=None, kernel_size=(5,5), stride=1)
 
     conv2d_argscope = slim.arg_scope([slim.conv2d],
-            activation_fn=None, kernel_size=(3,3), stride=1)
+            activation_fn=None, kernel_size=(5,5), stride=1)
 
     net = x
     with conv2d_argscope:

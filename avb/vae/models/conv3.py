@@ -11,7 +11,7 @@ def encoder(x, config, is_training=True):
     x = 2*x - 1
 
     conv2d_argscope = slim.arg_scope([slim.conv2d],
-            activation_fn=None, kernel_size=(3,3), stride=1)
+            activation_fn=None, kernel_size=(5,5), stride=1)
 
     net = x
     with conv2d_argscope:
