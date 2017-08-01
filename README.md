@@ -37,9 +37,6 @@ python download_mnist.py
 ```
 Example scripts to run the scripts can be found in the `experiments` folder.
 
-*NOTE*: the paper uses the `conv0` architecture for the encoder and decoder for the MNIST experiments, whereas the example scripts by default use the `conv1` architecture, as it is simpler and therefore faster to train. The `conv1` architecture is a reimplementation of the architecture used in the [Markov Chain Monte Carlo and Variational Inference:Bridging the Gap](http://www.jmlr.org/proceedings/papers/v37/salimans15.pdf) paper.
-Using this architecture, we achieve an approximate ELBO of -82.3+-0.3 and an AIS score of -81.8+-0.4 for a 32-dimensional latent space with adaptive contrast.
-
 Samples:
 
 ![MNIST samples](img/mnist_samples.png)
