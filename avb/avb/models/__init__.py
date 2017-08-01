@@ -22,7 +22,6 @@ encoder_ac_dict = {
 adversary_dict = {
     'conv0': conv0.adversary,
     'conv1': conv1.adversary,
-    'conv2': conv2.adversary,
 }
 
 def get_encoder(model_name, config, scope='encoder'):

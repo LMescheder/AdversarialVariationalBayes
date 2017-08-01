@@ -57,25 +57,3 @@ def encoder(x, config, eps=None, is_training=True):
         z = tf.nn.sigmoid(z)
 
     return z
-
-def adversary(z, x, config, is_training=True):
-    z_dim = config['z_dim']
-    z_dist = config['z_dist']
-    output_size = config['output_size']
-
-    x = flatten_spatial(x)
-    net = tf.concat([x, z], axis=1)
-
-    net =  slim.fully_connected(net, 512, activation_fn=tf.nn.elu)
-    for i in range(10):
-        dnet = slim.fully_connected(net, 512, scope='fc_%d_r0' % (i+1))
-        net += slim.fully_connected(dnet, 512, activation_fn=None, scope='fc_%d_r1' % (i+1),
-                                    weights_initializer=tf.constant_initializer(0.))
-        net = tf.nn.elu(net)
-
-#     net =  slim.fully_connected(net, 512, activation_fn=tf.nn.elu)
-    net =  slim.fully_connected(net, 1, activation_fn=None)
-    net = tf.squeeze(net, axis=1)
-    net += tf.reduce_sum(tf.square(z), axis=1)
-
-    return net
