@@ -19,7 +19,7 @@ args = [
 '--image-size', '375',
 '--output-size', '28',
 '--c-dim', '1',
-'--z-dim', '32',
+'--z-dim', '8',
 '--z-dist', 'gauss',
 '--cond-dist', 'bernouille',
 '--eps-dim', '64',
