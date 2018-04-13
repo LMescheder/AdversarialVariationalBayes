@@ -59,7 +59,7 @@ def main():
     config = vars(args)
     config['gf_dim'] = 64
     config['df_dim'] = 64
-    config['test_is_adaptive_eps'] = False
+    config['test_is_adaptive_eps'] = True
     pp.pprint(config)
 
     if not os.path.exists(args.log_dir):
